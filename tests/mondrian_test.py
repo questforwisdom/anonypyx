@@ -1,5 +1,6 @@
-import anonypy
-from anonypy import util
+import anonypyx
+from anonypyx import models
+from anonypyx import mondrian
 import pandas as pd
 
 data = [
@@ -17,30 +18,19 @@ data = [
 columns = ["col1", "col2", "col3", "col4", "col5"]
 categorical = set(("col2", "col3", "col4"))
 
-
 def test_k_anonymity():
     df = pd.DataFrame(data=data, columns=columns)
-    print(df)
 
     for name in categorical:
         df[name] = df[name].astype("category")
 
     feature_columns = ["col1", "col2", "col3"]
-    sensitive_column = "col4"
-    m = anonypy.Mondrian(df, feature_columns, sensitive_column)
-    partitions = m.partition(k=2)
+    m = mondrian.Mondrian(df, feature_columns)
+    partitions = m.partition([models.kAnonymity(2)])
     print(f"partitions: {partitions}")
 
-    indexes = util.build_indexes(df)
-    column_x, column_y = feature_columns[:2]
-    rects = util.get_partition_rects(
-        df, partitions, column_x, column_y, indexes, offsets=[0.1, 0.1]
-    )
 
-    print(f"rect: {rects[:10]}")
-
-
-def test_l_diversity():
+def test_distinct_l_diversity():
     df = pd.DataFrame(data=data, columns=columns)
 
     for name in categorical:
@@ -49,8 +39,8 @@ def test_l_diversity():
     feature_columns = ["col1", "col2", "col3"]
     sensitive_column = "col4"
 
-    m = anonypy.Mondrian(df, feature_columns, sensitive_column)
-    partitions = m.partition(k=2, l=2)
+    m = mondrian.Mondrian(df, feature_columns)
+    partitions = m.partition([models.DistinctLDiversity(2, sensitive_column)])
 
     print(f"partitions: {partitions}")
 
@@ -64,8 +54,8 @@ def test_t_closeness():
     feature_columns = ["col1", "col2", "col3"]
     sensitive_column = "col4"
 
-    m = anonypy.Mondrian(df, feature_columns, sensitive_column)
-    partitions = m.partition(k=2, p=0.2)
+    m = mondrian.Mondrian(df, feature_columns)
+    partitions = m.partition([models.tCloseness(0.2, df, sensitive_column, models.max_distance_metric)])
 
     print(f"partitions: {partitions}")
 
@@ -78,7 +68,21 @@ def test_get_spans():
 
     feature_columns = ["col1", "col2", "col3"]
 
-    m = anonypy.Mondrian(df, feature_columns)
+    m = mondrian.Mondrian(df, feature_columns)
     spans = m.get_spans(df.index)
 
     assert {"col1": 6, "col2": 2, "col3": 3} == spans
+
+def test_get_spans_with_scale():
+    df = pd.DataFrame(data=data, columns=columns)
+    scale = {"col1": 6, "col2": 4, "col3": 5}
+
+    for name in categorical:
+        df[name] = df[name].astype("category")
+
+    feature_columns = ["col1", "col2", "col3"]
+
+    m = mondrian.Mondrian(df, feature_columns)
+    spans = m.get_spans(df.index, scale)
+
+    assert {"col1": 6/6, "col2": 2/4, "col3": 3/5} == spans

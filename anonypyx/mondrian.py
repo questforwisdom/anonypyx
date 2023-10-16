@@ -1,33 +1,7 @@
-from anonypy import anonymity
-
-
 class Mondrian:
-    def __init__(self, df, feature_columns, sensitive_column=None):
+    def __init__(self, df, feature_columns):
         self.df = df
         self.feature_columns = feature_columns
-        self.sensitive_column = sensitive_column
-
-    def is_valid(self, partition, k=2, l=0, p=0.0):
-        # k-anonymous
-        if not anonymity.is_k_anonymous(partition, k):
-            return False
-        # l-diverse
-        if l > 0 and self.sensitive_column is not None:
-            diverse = anonymity.is_l_diverse(
-                self.df, partition, self.sensitive_column, l
-            )
-            if not diverse:
-                return False
-        # t-close
-        if p > 0.0 and self.sensitive_column is not None:
-            global_freqs = anonymity.get_global_freq(self.df, self.sensitive_column)
-            close = anonymity.is_t_close(
-                self.df, partition, self.sensitive_column, global_freqs, p
-            )
-            if not close:
-                return False
-
-        return True
 
     def get_spans(self, partition, scale=None):
         spans = {}
@@ -56,20 +30,25 @@ class Mondrian:
             dfr = dfp.index[dfp >= median]
             return (dfl, dfr)
 
-    def partition(self, k=3, l=0, p=0.0):
+    def partition(self, privacy_models):
         scale = self.get_spans(self.df.index)
 
         finished_partitions = []
         partitions = [self.df.index]
+
         while partitions:
             partition = partitions.pop(0)
-            spans = self.get_spans(partition, scale)
-            for column, span in sorted(spans.items(), key=lambda x: -x[1]):
-                lp, rp = self.split(column, partition)
-                if not self.is_valid(lp, k, l, p) or not self.is_valid(rp, k, l, p):
-                    continue
-                partitions.extend((lp, rp))
-                break
+            normalized_spans = self.get_spans(partition, scale)
+            for column, span in sorted(normalized_spans.items(), key=lambda x: -x[1]):
+                left_part, right_part = self.split(column, partition)
+
+                if self.__all_models_enforceable(left_part, right_part, privacy_models):
+                    partitions.extend((left_part, right_part))
+                    break
             else:
                 finished_partitions.append(partition)
         return finished_partitions
+
+    def __all_models_enforceable(self, left_part, right_part, privacy_models):
+        return all(model.is_enforcable(self.df.loc[left_part]) and model.is_enforcable(self.df.loc[right_part]) for model in privacy_models)
+

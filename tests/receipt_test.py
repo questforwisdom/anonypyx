@@ -1,4 +1,4 @@
-import anonypy
+import anonypyx
 import pandas as pd
 from datetime import datetime, date
 
@@ -30,11 +30,7 @@ def test_receipt():
 
     df["birth_ym"] = df["birth_ym"].map(lambda x: calculate_age(x))
 
-    feature_columns = ["sex", "family", "birth_ym"]
-    sensitive_column = "iid"
-
-    p = anonypy.Preserver(df, feature_columns, sensitive_column)
-    rows = p.anonymize_k_anonymity(k=2)
+    rows = anonypyx.Anonymizer(df, k=2, feature_columns=["sex", "family", "birth_ym"], sensitive_column="iid", algorithm="Mondrian").anonymize()
 
     dfn = pd.DataFrame(rows)
     print(len(dfn))
