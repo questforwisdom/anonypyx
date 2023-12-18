@@ -24,6 +24,8 @@ pip install anonypyx
 
 ## Usage
 
+**Disclaimer**: AnonyPyX does not shuffle the input data currently. In some applications, records can be re-identified based on the order in which they appear in the anonymized data set when shuffling is not used. 
+
 Mondrian:
 
 ```python
@@ -85,7 +87,7 @@ anonymizer = anonypyx.Anonymizer(df, k=3, algorithm="MDAV-generic", feature_colu
 Clone the repository:
 
 ```bash
-git clone TODO
+git clone https://github.com/questforwisdom/anonypyx.git
 ```
 
 Set a virtual python environment up and install dependencies:
@@ -109,6 +111,10 @@ pytest
 - added the microaggregation algorithm MDAV-generic [2]
 - added the Anonymizer class as the new API 
 - removed Preserver class which was superseded by Anonymizer
+
+### 0.2.1
+
+- minor bugfixes
 
 ## References
 

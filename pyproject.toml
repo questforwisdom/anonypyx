@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anonypyx"
-version = "0.2.0"
+version = "0.2.3"
 description = "Anonymization library for python, fork of anonypy"
 readme = "README.md"
 authors = [
-    { name = "abyssexplorer", email = "abyssexplorer2@gmail.com"},
-    { name = "glassonion1", email = "glassonion999@gmail.com" },
+    { name = "questforwisdom"},
+    { name = "glassonion1"},
 ]
 license = { file = "LICENSE" }
 classifiers = [
@@ -22,7 +22,7 @@ classifiers = [
 ]
 keywords = ["k-anonymity", "l-diversity", "t-closeness", "anonymization", "mondrian", "microaggregation", "mdav"]
 dependencies = [
-    "pandas>=1.1.0",
+    "pandas>=1.5.0",
     "numpy>=1.21.3",
     "scikit-learn>=1.0.1",
     "scipy>=1.11.3",
@@ -35,7 +35,7 @@ dev = ["pytest"]
 
 [project.urls]
 # TODO
-Homepage = "https://github.com/abyssexplorer/anonypyx"
+Homepage = "https://github.com/questforwisdom/anonypyx"
 
 [tool.setuptools]
 packages = ["anonypyx"]
