@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
-from anonypyx.microaggregation import MDAVGeneric
+from anonypyx.microaggregation import MDAVGeneric, RandomChoiceAggregation
 
 def test_MDAVGeneric_continuous_data_already_normalized_for_debugging():
     data = [
@@ -142,3 +142,67 @@ def test_MDAVGeneric_does_not_alter_data():
 
     assert df.equals(expected)
 
+def test_RandomcChoice_continuous_data():
+    # dataset chosen such that clustering is predetermined despite random choice
+    data = [
+        [0, 0, 0],
+        [0, 1, -1],
+        [100, 99.9, 101.1],
+        [100, 100, 100],
+        [0, 200, 0],
+        [0, 200, 0],
+        [-500, 3, 2],
+        [-510, 3.141, 2],
+    ]
+    columns = ["num1", "num2", "num3"]
+    df = pd.DataFrame(data=data, columns=columns)
+
+    partitioner = RandomChoiceAggregation(df, columns)
+
+    expected = [list(df.index[i:i+2]) for i in range(0, 8, 2)]
+    actual = partitioner.partition(2)
+    # sort to make order deterministic
+    sorted_actual = sorted([sorted(subset) for subset in actual])
+
+    assert expected == sorted_actual
+
+def test_RandomChoice_excluding_columns_works():
+    # dataset chosen such that clustering is predetermined despite random choice
+    data = [
+        [0, 0, 0],
+        [0, 1, -1],
+        [100, 99.9, 101.1],
+        [100, 100, 100],
+        [0, 200, 0],
+        [0, 200, 0],
+    ]
+    columns = ["num1", "num2", "num3"]
+    df = pd.DataFrame(data=data, columns=columns)
+
+    partitioner = RandomChoiceAggregation(df, ["num1", "num2"])
+
+    expected = [list(df.index[i:i+2]) for i in range(0, 6, 2)]
+    actual = partitioner.partition(2)
+    # sort to make order deterministic
+    sorted_actual = sorted([sorted(subset) for subset in actual])
+
+    assert expected == sorted_actual
+
+def test_RandomChoice_does_not_alter_data():
+    data = [
+        [0, 0, 0],
+        [0, 1, -1],
+        [100, 99.9, 101.1],
+        [100, 100, 100],
+        [0, 200, 0],
+        [0, 200, 0],
+    ]
+    columns = ["num1", "num2", "num3"]
+    df = pd.DataFrame(data=data, columns=columns)
+
+    expected = df.copy()
+
+    partitioner = RandomChoiceAggregation(df, ["num1", "num2"])
+    partitioner.partition(2)
+
+    assert df.equals(expected)

@@ -1,4 +1,4 @@
-import secrets
+import secrets 
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
@@ -93,3 +93,51 @@ class MDAVGeneric:
         dist_categorical = (pdist(self.remaining.loc[:, self.categorical], metric='hamming') * len(self.categorical)) if not len(self.categorical) == 0 else 0
 
         self.distance_matrix = pd.DataFrame(squareform(dist_categorical + dist_continuous))
+
+
+
+class RandomChoiceAggregation:
+    '''
+    Implements the microaggregation algorithm originally used
+    in the k-Same family of algorithms [1]. Only designed for
+    numerical data.
+    
+    The algorithm selects a random data point and assigns its
+    k-1 closest neighbours to a new cluster.
+
+    [1]: E. M. Newton, L. Sweeney, and B. Malin, ‘Preserving privacy
+    by de-identifying face images’, IEEE Transactions on Knowledge 
+    and Data Engineering, vol. 17, no. 2, pp. 232–243, Feb. 2005, 
+    doi: 10.1109/TKDE.2005.32.
+
+    '''
+    def __init__(self, df, feature_columns):
+        self.df = df
+        self.feature_columns = feature_columns
+        self.num_data_points = len(self.df.index)
+
+    def partition(self, k):
+        self.__prepare_data()
+        self.clusters = []
+
+        while (len(self.remaining_indices) >= 2 * k):
+            # choose random point
+            # assign closest points to new cluster
+            point = self.remaining.loc[self.remaining_indices].sample(n=1)
+            self.__assign_closest_points_to_new_cluster(point, k)
+            
+        self.clusters.append(self.remaining_indices)
+
+        return self.clusters
+
+    def __prepare_data(self):
+        self.remaining = self.df.drop(columns=[column for column in self.df.columns if column not in self.feature_columns])
+        self.remaining_indices = self.remaining.index
+
+    def __assign_closest_points_to_new_cluster(self, point, k):
+        distance_vector = cdist(point, self.remaining.loc[self.remaining_indices], metric='euclidean')[0]
+        array_positions = np.argpartition(distance_vector, k)[:k]
+        indices = self.remaining_indices.take(array_positions)
+        self.remaining_indices = self.remaining_indices.drop(indices)
+
+        self.clusters.append(indices)
