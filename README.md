@@ -76,14 +76,15 @@ Output:
 5  50-92  male,intersex  02139,20001,94130    stroke      1
 ```
 
-MDAV-generic
+MDAV-generic:
 
 ```python
 # Step 2: Prepare anonymizer
 anonymizer = anonypyx.Anonymizer(df, k=3, algorithm="MDAV-generic", feature_columns=["age", "sex", "zip code"], sensitive_column="diagnosis")
 ```
 
-k-Same-Eigen
+k-Same-Eigen:
+
 ```python
 import anonypyx
 import numpy as np
