@@ -1,38 +1,57 @@
 import pandas as pd
 
-def agg_categorical_column(series):
-    # this is workaround for dtype bug of series
-    series.astype("category")
+class Interval:
+    def generalise(self, series):
+        return [series.min(), series.max()]
 
-    # l = [str(n) for n in set(series)]
-    l = [str(n) for n in series.unique()]
-    return ",".join(l)
+    def new_names(self, column):
+        return [column + '_min', column + '_max']
 
+class OneHot:
+    def generalise(self, series):
+        return [series.max()]
 
-def agg_numerical_column(series):
-    minimum = series.min()
-    maximum = series.max()
-    if maximum == minimum:
-        string = str(maximum)
-    else:
-        string = f"{minimum}-{maximum}"
-    return string
+    def new_names(self, column):
+        return [column]
 
+class HumanReadableInterval:
+    def generalise(self, series):
+        minimum = series.min()
+        maximum = series.max()
 
-def aggregate_partitions(df, partitions, feature_columns, sensitive_column):
-    # TODO: inplace generalization to increase performance?
-    aggregations = {}
-    for column in feature_columns:
-        if df[column].dtype.name == "category":
-            aggregations[column] = agg_categorical_column
+        if maximum == minimum:
+            return [str(maximum)]
         else:
-            aggregations[column] = agg_numerical_column
-    unaltered_columns = df.columns.drop(feature_columns).to_list()
-    result = pd.DataFrame()
-    dfs = []
+            return [f"{minimum}-{maximum}"]
+
+    def new_names(self, column):
+        return [column]
+
+class HumanReadableSet:
+    def generalise(self, series):
+        l = [str(value) for value in series.unique()]
+        l.sort()
+
+        return [",".join(l)]
+
+    def new_names(self, column):
+        return [column]
+
+def aggregate_partitions(df, partitions, aggregations):
+    # TODO: if no selection is present, use a default config
+    unaltered_columns = df.columns.drop(aggregations.keys()).to_list()
+    new_data = []
     for i, partition in enumerate(partitions):
-        dfs.append(generalize_partition(df, partition, aggregations, unaltered_columns))
-    return pd.concat(dfs)
+        new_data += generalize_partition(df, partition, aggregations, unaltered_columns)
+
+    new_columns = []
+    for column in df.columns:
+        if column in unaltered_columns:
+            new_columns.append(column)
+        else:
+            new_columns += aggregations[column].new_names(column)
+    new_columns.append('count')
+    return pd.DataFrame(new_data, columns=new_columns)
 
 def count_sensitive_values_in_partition(df, partition, unaltered_columns):
     if len(unaltered_columns) == 0:
@@ -42,14 +61,20 @@ def count_sensitive_values_in_partition(df, partition, unaltered_columns):
     return counts.reset_index(name="count")
 
 def generalize_partition(df, partition, aggregations, unaltered_columns):
-    values = df.loc[partition].agg(aggregations, squeeze=False)
-
     sensitive_counts = count_sensitive_values_in_partition(df, partition, unaltered_columns)
-    result = pd.DataFrame()
- 
-    for column, value in values.items():
-        sensitive_counts.loc[:, column] = value
-    original_order = df.columns.to_list()
-    original_order.append('count')
-    return sensitive_counts[original_order]
- 
+    generalised_descriptions = {column: generaliser.generalise(df.loc[partition][column]) for column, generaliser in aggregations.items()}
+    result = []
+
+    for i in range(len(sensitive_counts.index)):
+        row = []
+        for column in df.columns:
+            if column in generalised_descriptions.keys():
+                row += generalised_descriptions[column]
+            else:
+                row.append(sensitive_counts[column][i])
+        
+        row.append(sensitive_counts['count'][i])
+        result.append(row)
+
+    return result
+
