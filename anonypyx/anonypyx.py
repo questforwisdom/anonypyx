@@ -3,23 +3,23 @@ from anonypyx import microaggregation
 from anonypyx import models
 from anonypyx import mondrian
 
-class Anonymizer:
+class Anonymiser:
     def __init__(self, df, **kwargs):
         '''
-        Creates a new Anonymizer instance.  
+        Creates a new Anonymiser instance.  
         Checks whether the given configuration options are valid.
 
         Parameters
         ----------
             df : pandas.DataFrame
-                The pandas DataFrame to anonymize.
+                The pandas DataFrame to anonymise.
 
         Keyword Parameters
         ------------------
             sensitive_column : str
                 The name of the sensitive attribute column in the data frame. Must be set when l-diversity or t-closeness are applied. (default: None)
             feature_columns : array-like
-                The names of the quasi-identifier columns in the data frame. Anonymization only changes these columns. (default: All columns)
+                The names of the quasi-identifier columns in the data frame. Anonymisation only changes these columns. (default: All columns)
             generalisation_strategy : str
                 Determines how the quasi-identifiers in the anonymised data are generalised.
                 Available options are "human-readable", "machine-readable" and "microaggregation".
@@ -36,7 +36,7 @@ class Anonymizer:
             closeness_metric : str
                 Distance metric used by t-closeness. Can be either "max distance" or "earth mover's distance". (default: "max distance")
             algorithm : str
-                The anonymization algorithm to use. Can be either "Mondrian" or "MDAV-generic" (supports only k-anonymity). (default: "Mondrian")
+                The anonymisation algorithm to use. Can be either "Mondrian" or "MDAV-generic" (supports only k-anonymity). (default: "Mondrian")
 
         Raises
         ------
@@ -141,13 +141,13 @@ class Anonymizer:
         self.sensitive_attribute = sensitive_attribute
         self.generalisation_strategy_type = generalisation_strategy_type
 
-    def anonymize(self):
+    def anonymise(self):
         '''
-        Starts the anonymization algorithm with the options specified by this Anonymizer instance.
+        Starts the anonymisation algorithm with the options specified by this Anonymiser instance.
 
         Returns
         -------
-            List of anonymized records.
+            List of anonymised records.
         '''
         partitions = self.algorithm.partition(self.parameters)
         generalisation = self.generalisation_strategy_type.create_for_data(self.df, self.quasi_identifiers)

@@ -23,25 +23,24 @@ def prepared_df():
     return df
 
 def test_k_anonymity(prepared_df):
-    a = anonypyx.Anonymizer(prepared_df, k=2, feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
-    rows = a.anonymize()
+    a = anonypyx.Anonymiser(prepared_df, k=2, feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
+    rows = a.anonymise()
 
     dfn = pd.DataFrame(rows)
     print(dfn)
 
 
 def test_l_diversity(prepared_df):
-    a = anonypyx.Anonymizer(prepared_df, k=2, l=2, diversity_definition="distinct", feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
-    rows = a.anonymize()
+    a = anonypyx.Anonymiser(prepared_df, k=2, l=2, diversity_definition="distinct", feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
+    rows = a.anonymise()
 
     dfn = pd.DataFrame(rows)
     print(dfn)
 
 
 def test_t_closeness(prepared_df):
-    a = anonypyx.Anonymizer(prepared_df, k=2, t=0.2, closeness_metric="max distance", feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
-    rows = a.anonymize()
+    a = anonypyx.Anonymiser(prepared_df, k=2, t=0.2, closeness_metric="max distance", feature_columns=["col1", "col2", "col3"], sensitive_column="col4")
+    rows = a.anonymise()
 
     dfn = pd.DataFrame(rows)
     print(dfn)
-

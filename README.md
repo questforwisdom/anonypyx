@@ -1,20 +1,20 @@
 # AnonyPyx
 
-This is a fork of the python library [AnonyPy](https://pypi.org/project/anonypy/) providing data anonymization techniques. 
-AnonyPyx adds further algorithms (see below) and introduces a declarative interface.
+This is a fork of the python library [AnonyPy](https://pypi.org/project/anonypy/) providing data anonymisation techniques. 
+AnonyPyx adds further algorithms (see below), introduces a declarative interface and adds attacks on the anonymised data.
 If you consider migrating from AnonyPy, keep in mind that AnonyPyx is not compatible with its original API.
 
 ## Features
 
-- partion-based anonymization algorithm Mondrian [1] supporting
+- partion-based anonymisation algorithm Mondrian [1] supporting
     - k-anonymity
     - l-diversity 
     - t-closeness
-- microclustering based anonymization algorithm MDAV-Generic [2] supporting
+- microclustering based anonsmization algorithm MDAV-Generic [2] supporting
     - k-anonymity
 - interoperability with pandas data frames
 - supports both continuous and categorical attributes 
-- image anonymization via the k-Same family of algorithms
+- image anonymisation via the k-Same family of algorithms
 
 ## Install
 
@@ -25,7 +25,7 @@ pip install anonypyx
 
 ## Usage
 
-**Disclaimer**: AnonyPyX does not shuffle the input data currently. In some applications, records can be re-identified based on the order in which they appear in the anonymized data set when shuffling is not used. 
+**Disclaimer**: AnonyPyX does not shuffle the input data currently. In some applications, records can be re-identified based on the order in which they appear in the anonymised data set when shuffling is not used. 
 
 Mondrian:
 
@@ -50,23 +50,23 @@ df = pd.DataFrame(data=data, columns=columns)
 for column in ("sex", "zip code", "diagnosis"):
     df[column] = df[column].astype("category")
 
-# Step 2: Prepare anonymizer
+# Step 2: Prepare anonymiser
 
-anonymizer = anonypyx.Anonymizer(
+anonymiser = anonypyx.Anonymiser(
     df, k=3, l=2, algorithm="Mondrian", 
     feature_columns=["age", "sex", "zip code"], 
     sensitive_column="diagnosis",
     generalisation_strategy="human-readable
 )
 
-# Step 3: Anonymize data (this might take a while for large data sets)
+# Step 3: Anonymise data (this might take a while for large data sets)
 
-anonymized_records = anonymizer.anonymize()
+anonymised_records = anonymiser.anonymise()
 
 # Print results:
 
-anonymized_df = pd.DataFrame(anonymized_records)
-print(anonymized_df)
+anonymised_df = pd.DataFrame(anonymised_records)
+print(anonymised_df)
 ```
 
 Output: 
@@ -84,8 +84,8 @@ Output:
 MDAV-generic:
 
 ```python
-# Step 2: Prepare anonymizer
-anonymizer = anonypyx.Anonymizer(
+# Step 2: Prepare anonymiser
+anonymiser = anonypyx.Anonymiser(
     df, k=3, algorithm="MDAV-generic", 
     feature_columns=["age", "zip code", "income"], 
     generalisation_strategy="microaggregation"
@@ -114,17 +114,17 @@ files = [f for f in listdir(path_to_dir) if isfile(join(path_to_dir, f))]
 images = [cv2.imread(join(path_to_dir, f), flags = cv2.IMREAD_GRAYSCALE) for f in listdir(path_to_dir) if isfile(join(path_to_dir, f))]
 images = np.array(images)
 
-# Step 2: Prepare anonymizer
+# Step 2: Prepare anonymiser
 
-anonymizer = anonypyx.kSame(images, width, height, k=5, variant='eigen')
+anonymiser = anonypyx.kSame(images, width, height, k=5, variant='eigen')
 
-# Step 3: Anonymization
+# Step 3: Anonymisation
 
-anonymized, mapping = anonymizer.anonymize()
+anonymised, mapping = anonymiser.anonymise()
 
-# Display the first image and its anonymized version
+# Display the first image and its anonymised version
 
-sample_image = np.concatenate((images[0], anonymized[mapping[0]]), axis=1).astype('uint8')
+sample_image = np.concatenate((images[0], anonymised[mapping[0]]), axis=1).astype('uint8')
 sample_image = cv2.cvtColor(sample_image, cv2.COLOR_GRAY2BGR)
 cv2.imshow("k-same-eigen", sample_image)
 cv2.waitKey(0)
@@ -158,8 +158,8 @@ pytest
 ### 0.2.0
 
 - added the microaggregation algorithm MDAV-generic [2]
-- added the Anonymizer class as the new API 
-- removed Preserver class which was superseded by Anonymizer
+- added the Anonymiser class as the new API 
+- removed Preserver class which was superseded by Anonymiser
 
 ### 0.2.1 - 0.2.3
 
@@ -167,7 +167,7 @@ pytest
 
 ### 0.2.4
 
-- added k-Same family of algorithms for image anonymization [3]
+- added k-Same family of algorithms for image anonymisation [3]
 - added the microaggregation algorithm used by k-Same
 
 ## References
