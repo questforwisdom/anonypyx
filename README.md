@@ -52,7 +52,12 @@ for column in ("sex", "zip code", "diagnosis"):
 
 # Step 2: Prepare anonymizer
 
-anonymizer = anonypyx.Anonymizer(df, k=3, l=2, algorithm="Mondrian", feature_columns=["age", "sex", "zip code"], sensitive_column="diagnosis")
+anonymizer = anonypyx.Anonymizer(
+    df, k=3, l=2, algorithm="Mondrian", 
+    feature_columns=["age", "sex", "zip code"], 
+    sensitive_column="diagnosis",
+    generalisation_strategy="human-readable
+)
 
 # Step 3: Anonymize data (this might take a while for large data sets)
 
@@ -80,7 +85,11 @@ MDAV-generic:
 
 ```python
 # Step 2: Prepare anonymizer
-anonymizer = anonypyx.Anonymizer(df, k=3, algorithm="MDAV-generic", feature_columns=["age", "sex", "zip code"], sensitive_column="diagnosis")
+anonymizer = anonypyx.Anonymizer(
+    df, k=3, algorithm="MDAV-generic", 
+    feature_columns=["age", "zip code", "income"], 
+    generalisation_strategy="microaggregation"
+)
 ```
 
 k-Same-Eigen:

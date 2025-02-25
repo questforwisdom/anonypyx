@@ -1,4 +1,4 @@
-from anonypyx import generalization
+from anonypyx import generalisation
 from anonypyx import microaggregation
 from anonypyx import models
 from anonypyx import mondrian
@@ -18,10 +18,13 @@ class Anonymizer:
         ------------------
             sensitive_column : str
                 The name of the sensitive attribute column in the data frame. Must be set when l-diversity or t-closeness are applied. (default: None)
-            feature_columns : array-like or dict-like
+            feature_columns : array-like
                 The names of the quasi-identifier columns in the data frame. Anonymization only changes these columns. (default: All columns)
-                If this is a dictionary, the keys must be the names of the column names and while the values define how this column are generalised.
-                Available options for generalisations are: "human readable set", "human readable interval", "one hot" and "interval". (default: "human readable set" for cateogical attributes and "human readable interval" for numerical attributes) 
+            generalisation_strategy : str
+                Determines how the quasi-identifiers in the anonymised data are generalised.
+                Available options are "human-readable", "machine-readable" and "microaggregation".
+                "microaggregation" does not support categorical values.
+                (default: "machine-readable")
             k : int
                 Parameter k of k-anonymity. (default: 1)
             l : int
@@ -52,22 +55,18 @@ class Anonymizer:
         l_diversity_definition = kwargs.get("diversity_definition", "distinct")
         t_closeness_metric = kwargs.get("closeness_metric", "max distance")
         algorithm = kwargs.get("algorithm", "Mondrian")
-        aggregations = {}
+        # aggregations = {}
+        generalisation_strategy = kwargs.get("generalisation_strategy", "machine-readable")
+        generalisation_strategy_type = None
 
-        if type(quasi_identifiers) is not dict:
-            quasi_identifiers = {column: 'human readable set' if df[column].dtype.name == "category" else "human readable interval" for column in quasi_identifiers}
-
-        for column, config in quasi_identifiers.items():
-            if config == "human readable set":
-                aggregations[column] = generalization.HumanReadableSet()
-            elif config == "human readable interval":
-                aggregations[column] = generalization.HumanReadableInterval()
-            elif config == "interval":
-                aggregations[column] = generalization.Interval()
-            elif config == "one hot":
-                aggregations[column] = generalization.OneHot()
-            else:
-                raise TypeError(f"Unsupported generalisation option {config} for attribute {column}.")
+        if generalisation_strategy == 'machine-readable':
+            generalisation_strategy_type = generalisation.MachineReadable
+        elif generalisation_strategy == 'human-readable':
+            generalisation_strategy_type = generalisation.HumanReadable
+        elif generalisation_strategy == 'microaggregation':
+            generalisation_strategy_type = generalisation.Microaggregation
+        else:
+            raise TypeError("Unknown generalisation strategy.")
 
         if type(k) is not int:
             raise TypeError("k must be an integer.")
@@ -98,7 +97,7 @@ class Anonymizer:
         if (sensitive_attribute is not None) and (sensitive_attribute not in df.columns):
             raise ValueError("sensitive_column must be a column name within the given data frame.")
     
-        if not all(qi in df.columns for qi in quasi_identifiers.keys()):
+        if not all(qi in df.columns for qi in quasi_identifiers):
             raise ValueError("Every feature column in feature_columns must be a column name within the given data frame.")
     
         privacy_models = [models.kAnonymity(k)]
@@ -119,15 +118,15 @@ class Anonymizer:
             if t_closeness_metric == "max distance":
                 privacy_models.append(models.tCloseness(t, df, sensitive_attribute, models.max_distance_metric))
             elif t_closeness_metric == "earth mover's distance":
-                if not all(df[qi].dtype.name == "category" for qi in quasi_identifiers.keys()):
+                if not all(df[qi].dtype.name == "category" for qi in quasi_identifiers):
                     raise NotImplementedError("Earth mover's distance has not been implemented for numerical attributes yet.")
                 privacy_models.append(models.tCloseness(t, df, sensitive_attribute, models.earth_movers_distance_categorical))
     
         if algorithm == "Mondrian":
-            self.algorithm = mondrian.Mondrian(df, quasi_identifiers.keys())
+            self.algorithm = mondrian.Mondrian(df, quasi_identifiers)
             self.parameters = privacy_models
 
-            m = mondrian.Mondrian(df, quasi_identifiers.keys())
+            m = mondrian.Mondrian(df, quasi_identifiers)
             partitions = m.partition(privacy_models)
         elif algorithm == "MDAV-generic":
             if l is not None:
@@ -135,11 +134,12 @@ class Anonymizer:
             if t is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support t-closeness.")
     
-            self.algorithm = microaggregation.MDAVGeneric(df, quasi_identifiers.keys())
+            self.algorithm = microaggregation.MDAVGeneric(df, quasi_identifiers)
             self.parameters = k
         self.df = df
-        self.aggregations = aggregations
+        self.quasi_identifiers = quasi_identifiers
         self.sensitive_attribute = sensitive_attribute
+        self.generalisation_strategy_type = generalisation_strategy_type
 
     def anonymize(self):
         '''
@@ -150,5 +150,6 @@ class Anonymizer:
             List of anonymized records.
         '''
         partitions = self.algorithm.partition(self.parameters)
-        return generalization.aggregate_partitions(self.df, partitions, self.aggregations)
+        generalisation = self.generalisation_strategy_type.create_for_data(self.df, self.quasi_identifiers)
+        return generalisation.generalise(self.df, partitions)
 
