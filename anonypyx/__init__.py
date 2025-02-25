@@ -1,2 +1,2 @@
-from anonypyx.anonypyx import *
+from anonypyx.anonymiser import *
 from anonypyx.ksame import *
