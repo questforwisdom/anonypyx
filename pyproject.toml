@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anonypyx"
-version = "0.2.4"
-description = "Anonymization library for python, fork of anonypy"
+version = "0.2.5"
+description = "Anonymisation library for python, fork of anonypy"
 readme = "README.md"
 authors = [
     { name = "questforwisdom"},
@@ -26,7 +26,7 @@ dependencies = [
     "numpy>=1.21.3",
     "scikit-learn>=1.0.1",
     "scipy>=1.11.3",
-    "category_encoders>=2.3.0",
+    "exact_multiset_cover>=1.5.0",
 ]
 requires-python = ">=3.9"
 

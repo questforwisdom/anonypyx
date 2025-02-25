@@ -158,8 +158,8 @@ pytest
 ### 0.2.0
 
 - added the microaggregation algorithm MDAV-generic [2]
-- added the Anonymiser class as the new API 
-- removed Preserver class which was superseded by Anonymiser
+- added the Anonymizer class as the new API 
+- removed Preserver class which was superseded by Anonymizer
 
 ### 0.2.1 - 0.2.3
 
@@ -169,6 +169,13 @@ pytest
 
 - added k-Same family of algorithms for image anonymisation [3]
 - added the microaggregation algorithm used by k-Same
+
+### 0.2.5
+
+- renamed `Anonymizer` and its `anonymize` method to BE spelling
+- added the `generalisation_strategy` parameter to Anonymiser which determines how generalised data is represented (old behaviour is `"human-readable"`)
+- added the generalisation strategies `"machine-readable"` and `"microaggregation"`
+- added some attacks on anonymised data which can be found in the submodule `attackers`
 
 ## References
 
