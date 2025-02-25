@@ -4,7 +4,7 @@ import random
 from sklearn.decomposition import PCA
 from scipy.spatial.distance import cdist
 
-from anonypyx import microaggregation 
+import anonypyx.microaggregation as microaggregation
 
 class kSame:
     '''
