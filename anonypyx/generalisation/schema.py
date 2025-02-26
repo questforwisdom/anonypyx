@@ -60,7 +60,7 @@ class GeneralisedSchema:
         -------
         A pandas.DataFrame which has been generalised according to this schema.
         '''
-        df = self._preprocess(df)
+        df = self._preprocess(df.copy())
 
         part_1 = self._generalise_quasi_identifiers(df, partitions)
         part_2 = self._count_unique_unaltered_values(df, partitions)
@@ -114,7 +114,7 @@ class GeneralisedSchema:
             The column names from the original data for which the value from
             record_a is copied into the resulting record. These columns
             must not appear in on or take_right.
-        take_lright : list of str
+        take_right : list of str
             The column names from the original data for which the value from
             record_b is copied into the resulting record. These columns
             must not appear in on or take_left.

@@ -49,7 +49,6 @@ class tCloseness:
         if total_count == 0:
             return False
 
-        # TODO: optimization possible: do not recalculate frequencies
         local_frequencies = get_frequency(df, self.__sensitive_column)
 
         return self.__metric(local_frequencies, self.__global_frequencies) <= self.__t

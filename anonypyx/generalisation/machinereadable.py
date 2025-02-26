@@ -14,14 +14,6 @@ class MachineReadable(GeneralisedSchema):
     def create_for_data(cls, df, quasi_identifiers):
         categorical, integer, unaltered = build_column_groups(df, quasi_identifiers)
 
-        for column in categorical:
-            value_columns = [column + '_' + value for value in df[column].unique()]
-
-        
-        for column in integer:
-            df[column + '_min'] = df[column]
-            df[column + '_max'] = df[column]
-
         one_hot_sets = {col: [col + '_' + val for val in df[col].unique()] for col in categorical}
         intervals = {col: (col + '_min', col + '_max') for col in integer}
 

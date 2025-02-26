@@ -97,6 +97,21 @@ def test_generalise_mixed_data_set(mixed_df_fixture):
 
     assert_data_set_equal(result, expected)
 
+def test_schema_creation_does_not_alter_original_df(mixed_df_fixture):
+    df, _, _ = mixed_df_fixture
+    expected = df.copy()
+    strategy = MachineReadable.create_for_data(df, ['QI1', 'QI2'])
+
+    assert_data_set_equal(df, expected)
+
+def test_generalisation_does_not_alter_original_df(mixed_df_fixture):
+    df, partition, _ = mixed_df_fixture
+    expected = df.copy()
+    strategy = MachineReadable.create_for_data(df, ['QI1', 'QI2'])
+    strategy.generalise(df, [partition])
+
+    assert_data_set_equal(df, expected)
+
 def test_generalisation_works_without_sensitive_attribute(numerical_df_fixture):
     df, partition, _ = numerical_df_fixture
     strategy = MachineReadable.create_for_data(df, ['QI1', 'QI2', 'S'])
