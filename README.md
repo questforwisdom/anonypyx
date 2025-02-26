@@ -177,6 +177,10 @@ pytest
 - added the generalisation strategies `"machine-readable"` and `"microaggregation"`
 - added some attacks on anonymised data which can be found in the submodule `attackers`
 
+### 0.2.6 - 0.2.8
+
+- bugfixes
+
 ## References
 
 - [1]: LeFevre, K., DeWitt, D. J., & Ramakrishnan, R. (2006). Mondrian multidimensional K-anonymity. 22nd International Conference on Data Engineering (ICDE’06), 25–25. https://doi.org/10.1109/ICDE.2006.101

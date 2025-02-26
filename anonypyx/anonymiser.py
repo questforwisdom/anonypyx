@@ -1,7 +1,4 @@
-import anonypyx.generalisation as generalisation
-import anonypyx.microaggregation as microaggregation
-import anonypyx.models as models
-import anonypyx.mondrian as mondrian
+from anonypyx import generalisation, microaggregation, models, mondrian
 
 class Anonymiser:
     def __init__(self, df, **kwargs):

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anonypyx"
-version = "0.2.7"
+version = "0.2.8"
 description = "Anonymisation library for python, fork of anonypy"
 readme = "README.md"
 authors = [
@@ -37,4 +37,4 @@ dev = ["pytest"]
 Homepage = "https://github.com/questforwisdom/anonypyx"
 
 [tool.setuptools]
-packages = ["anonypyx"]
+packages = ["anonypyx", "anonypyx.generalisation", "anonypyx.attackers", "anonypyx.generalisation"]
