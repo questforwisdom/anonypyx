@@ -13,10 +13,10 @@ def test_pvpc_confidence_levels():
     })
     prediction = pd.DataFrame(data={
         'ID':  [  0,   1, 2,   3],
-        'S_1': [1/2, 1/3, 0, 1/4],
-        'S_2': [1/2, 1/3, 0, 1/4],
-        'S_3': [  0, 1/3, 1, 1/4],
-        'S_4': [  0,   0, 0, 1/4]
+        '1': [1/2, 1/3, 0, 1/4],
+        '2': [1/2, 1/3, 0, 1/4],
+        '3': [  0, 1/3, 1, 1/4],
+        '4': [  0,   0, 0, 1/4]
     })
 
     assert pytest.approx(0.25) == pvpc.percentage_of_vulnerable_population(ground_truth, prediction, 1.0, 'S')
@@ -33,10 +33,10 @@ def test_pvpc_multiple_occurrences_of_some_confidence():
     })
     prediction = pd.DataFrame(data={
         'ID':  [  0,   1,   2,   3],
-        'S_1': [1/2,   0, 1/4,   0],
-        'S_2': [1/2, 1/2, 1/4, 1/2],
-        'S_3': [  0, 1/2, 1/4,   0],
-        'S_4': [  0,   0, 1/4, 1/2]
+        '1': [1/2,   0, 1/4,   0],
+        '2': [1/2, 1/2, 1/4, 1/2],
+        '3': [  0, 1/2, 1/4,   0],
+        '4': [  0,   0, 1/4, 1/2]
     })
 
     assert pytest.approx(0) == pvpc.percentage_of_vulnerable_population(ground_truth, prediction, 1.0, 'S')

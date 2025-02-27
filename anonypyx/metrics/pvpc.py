@@ -27,15 +27,12 @@ def percentage_of_vulnerable_population(original_df, prediction_df, confidence_l
     -------
     The PVP_C, a float between 0 (high privacy) and 1 (low privacy).
     """
-    def value_to_column(value):
-        return sensitive_column + '_' + str(value)
-
     vulnerable_population = 0
     total_population = len(original_df)
 
     for target_id in range(total_population):
-        ground_truth = original_df.at[target_id, 'S']
-        confidence = prediction_df.at[target_id, value_to_column(ground_truth)]
+        ground_truth = original_df.at[target_id, sensitive_column]
+        confidence = prediction_df.at[target_id, str(ground_truth)]
 
         if confidence >= confidence_level:
             vulnerable_population += 1

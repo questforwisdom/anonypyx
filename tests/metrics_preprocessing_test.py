@@ -24,16 +24,16 @@ def test_preprocess_original_data():
 def test_preprocess_prediction():
     df = pd.DataFrame(data={
         'ID':  [0, 1, 2, 3],
-        'S_1': [2, 1, 0, 1],
-        'S_2': [1, 1, 0, 2],
-        'S_3': [0, 3, 2, 3],
-        'S_4': [0, 0, 0, 4]
+        '1': [2, 1, 0, 1],
+        '2': [1, 1, 0, 2],
+        '3': [0, 3, 2, 3],
+        '4': [0, 0, 0, 4]
     })
     expected = pd.DataFrame(data={
-        'S_1': [2/3, 1/5,   0, 1/10],
-        'S_2': [1/3, 1/5,   0, 2/10],
-        'S_3': [  0, 3/5,   1, 3/10],
-        'S_4': [  0,   0,   0, 4/10]
+        '1': [2/3, 1/5,   0, 1/10],
+        '2': [1/3, 1/5,   0, 2/10],
+        '3': [  0, 3/5,   1, 3/10],
+        '4': [  0,   0,   0, 4/10]
     }, index=pd.Index(data=[0,1,2,3],name='ID'))
 
     actual = pp.preprocess_prediction(df)

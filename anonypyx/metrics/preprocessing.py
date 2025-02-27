@@ -6,8 +6,8 @@ def preprocess_prediction(prediction_df):
     ----------
     prediction_df : pd.DataFrame
         The adversary's prediction. It must contain the unique identifier of the targets in a 
-        column ID and then one column for every distinct value of the sensitive attribute (naming
-        scheme is <sensitive_column>_<value>) which contains the adversary's confidence in the
+        column ID and then one column for every distinct value of the sensitive attribute (names
+        must match the values) which contains the adversary's confidence in the
         corresponding value for the given individual. These confidence values do not have to be
         normalised (i.e. rows such as (ID=0, S_1=0, S_2=1, S_3=2, S_4=5) may be used here). 
         There must be exactly one record/row per targeted individual.
