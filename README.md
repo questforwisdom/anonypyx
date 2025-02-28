@@ -181,6 +181,10 @@ pytest
 
 - bugfixes
 
+### 0.2.9
+
+- added privacy and utility metrics in subpackage `anonypyx.metrics`
+
 ## References
 
 - [1]: LeFevre, K., DeWitt, D. J., & Ramakrishnan, R. (2006). Mondrian multidimensional K-anonymity. 22nd International Conference on Data Engineering (ICDE’06), 25–25. https://doi.org/10.1109/ICDE.2006.101

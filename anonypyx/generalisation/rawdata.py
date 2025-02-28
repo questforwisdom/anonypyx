@@ -1,0 +1,101 @@
+from anonypyx.generalisation import schema
+
+import pandas as pd
+
+class RawData(schema.GeneralisedSchema):
+    '''
+    Dummy generalised schema which does not alter the data other than removing duplicates and
+    adding the count column. Can be used to process raw and generalised data in the samw way.
+    '''
+    @classmethod
+    def create_for_data(cls, df, quasi_identifiers):
+        categorical, integer, unaltered = schema.build_column_groups(df, df.columns)
+
+        return RawData(categorical, integer, quasi_identifiers)
+
+    def __init__(self, categorical, integer, quasi_identifier):
+        '''
+        Constructor
+
+        Parameters
+        ----------
+        categorical : list of str
+            List of column names which have a categorical domain.
+        integer : list of str
+            List of column names which have a numerical domain.
+        quasi_identifier : list of str
+            List of column names which are quasi-identifiers.
+        '''
+        super().__init__(categorical + integer)
+        self._quasi_identifier = quasi_identifier
+        self._categorical = categorical
+        self._integer = integer
+
+    def quasi_identifier(self):
+        return self._quasi_identifier[:]
+
+    def generalise(self, df, partitions):
+        # dirty workaround, but serves its purpose:
+        # overwrite the method to skip generalisation of
+        # quasi-identifiers (the usual way of overwriting _generalise_partition()
+        # is not possible here because the method must return exactly one 
+        # generalised quasi-identifier per partition)
+        partitions = [[i for p in partitions for i in p]]
+        df = self._count_unique_unaltered_values(df, partitions)
+        return df.drop('group_id', axis=1)
+
+    def match(self, df, record, on):
+        df_filter = True
+        for column in on:
+            df_filter = df_filter & (df[column] == record[column])
+
+        return df[df_filter].index
+
+    def intersect(self, record_a, record_b, on, take_left, take_right):
+        result = {}
+        for column in on:
+            if record_a[column] != record_b[column]:
+                return None
+            result[column] = record_a[column]
+
+        self._copy_values(record_a, result, take_left)
+        self._copy_values(record_b, result, take_right)
+
+        return pd.Series(result)
+
+    def _copy_values(self, origin, destination, columns):
+        for column in columns:
+            destination[column] = origin[column]
+
+    def values_for(self, record, column):
+        return {record[column]}
+
+    def set_cardinality(self, record, on):
+        return 1
+
+    def select(self, df, query):
+        df_filter = True
+        for col, value_range in query.items():
+            column_filter = False
+            if df[col].dtype.name == "category":
+                for value in value_range:
+                    column_filter = column_filter | (df[col] == value)
+            else:
+                column_filter = (df[col] <= value_range[1]) & (df[col] >= value_range[0])
+
+            df_filter = df_filter & column_filter
+
+        return df[df_filter].index
+
+    def query_overlap(self, record, query):
+        for col, value_range in query.items():
+            # TODO: checking pandas dtype does not work with series
+            # the schema should now wheter the column is categorical or numerical
+            # this is a workaround for now...
+            if isinstance(value_range, set):
+                if record[col] not in value_range:
+                    return 0
+            else:
+                if record[col] < value_range[0] or record[col] > value_range[1]:
+                    return 0
+        return 1

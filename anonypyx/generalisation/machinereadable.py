@@ -124,6 +124,81 @@ class MachineReadable(GeneralisedSchema):
 
         return pd.Series(result)
 
+    def values_for(self, record, column):
+        if column in self._unaltered:
+            return {record[column]}
+        if column in self._intervals:
+            min_col, max_col = self._intervals[column]
+            return set(range(record[min_col], record[max_col] + 1))
+        # TODO: workaround, dependency on naming scheme of value columns
+        return {c.removeprefix(column + '_') for c in self._one_hot_sets[column] if record[c]}
+
+    def set_cardinality(self, record, on):
+        result = 1
+        for col in on:
+            if col in self._intervals:
+                min_col, max_col = self._intervals[col]
+                result *= (record[max_col] - record[min_col] + 1)
+            elif col in self._one_hot_sets:
+                values = 0
+                for value_col in self._one_hot_sets[col]:
+                    if record[value_col]:
+                        values += 1
+                result *= values
+        return result
+
+    def select(self, df, query):
+        df_filter = True
+        for col, value_range in query.items():
+            column_filter = False
+            if col in self._intervals:
+                min_col, max_col = self._intervals[col]
+                column_filter = (df[min_col] <= value_range[1]) & (df[max_col] >= value_range[0])
+            elif col in self._one_hot_sets:
+                for value in value_range:
+                    column_filter = column_filter | (df[col + '_' + str(value)] == 1)
+            else:
+                if df[col].dtype.name == "category":
+                    for value in value_range:
+                        column_filter = column_filter | (df[col] == value)
+                else:
+                    column_filter = (df[col] <= value_range[1]) & (df[col] >= value_range[0])
+
+            df_filter = df_filter & column_filter
+
+        return df[df_filter].index
+
+    def query_overlap(self, record, query):
+        result = 1
+        for col, value_range in query.items():
+            if col in self._intervals:
+                min_col, max_col = self._intervals[col]
+                lower = max(record[min_col], value_range[0])
+                upper = min(record[max_col], value_range[1])
+
+                if upper < lower:
+                    return 0
+
+                result *= (upper - lower + 1)
+            elif col in self._one_hot_sets:
+                matches = 0
+                for value in value_range:
+                    if record[col + '_' + str(value)]:
+                        matches += 1
+
+                result *= matches
+            else:
+                # TODO: checking pandas dtype does not work with series
+                # the schema should now wheter the column is categorical or numerical
+                # this is a workaround for now...
+                if isinstance(value_range, set):
+                    if record[col] not in value_range:
+                        return 0
+                else:
+                    if record[col] < value_range[0] or record[col] > value_range[1]:
+                        return 0
+        return result
+
     def _copy_values(self, origin, destination, columns):
         for column in columns:
             if column in self._intervals:
@@ -135,13 +210,4 @@ class MachineReadable(GeneralisedSchema):
                     destination[value_column] = origin[value_column]
             else:
                 destination[column] = origin[column]
-
-    def values_for(self, record, column):
-        if column in self._unaltered:
-            return {record[column]}
-        if column in self._intervals:
-            min_col, max_col = self._intervals[column]
-            return set(range(record[min_col], record[max_col] + 1))
-        # TODO: workaround, dependency on naming scheme of value columns
-        return {c.removeprefix(column + '_') for c in self._one_hot_sets[column] if record[c]}
 

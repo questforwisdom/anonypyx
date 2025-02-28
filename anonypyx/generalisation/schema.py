@@ -144,14 +144,6 @@ class GeneralisedSchema:
         '''
         raise NotImplementedError()
 
-    def _preprocess(self, df):
-        '''
-        Overwrite this method in subclasses.
-        It receives the raw data frame as input and must return a data frame
-        containing all columns required by the generalisation schema.
-        '''
-        return df
-
     def quasi_identifier(self):
         '''
         Overwrite this method in subclasses.
@@ -159,6 +151,83 @@ class GeneralisedSchema:
         Ensure that the order is the same as returned by _generalise_partition()!
         '''
         raise NotImplementedError()
+
+    def set_cardinality(self, record, on):
+        """
+        Returns the size of the generalised value set described by a record
+        when restricted to the given columns.
+
+        Parameters
+        ----------
+        record : pandas.Series or dict-like
+            The record for which the generalised set size is computed. Must be
+            generalised according to this schema.
+        on : list of str
+            The orignial column names for which the set size is computed.
+
+        Returns
+        -------
+        The number of raw data points which are consistent with the given record
+        when restricted to the given columns. Numerical attributes are interpreted
+        as integers.
+        """
+        raise NotImplementedError()
+
+    def select(self, df, query):
+        """
+        Returns the indices of records matching the given query in the given data frame.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            The data frame which is queries. Must be generalised according to this
+            schema.
+        query : dict 
+            A dictionary describing the query's predicates. Keys must be column names from the 
+            original data. Numercial columns must be mapped to a tuple of two values which define
+            the lower and upper bound of the query (both inclusive). Categorical attributes must
+            be mapped to a set of values. The query is the conjunction of all predicates (logical
+            AND).
+
+        Returns
+        -------
+        The indices of records matching the query from the data frame. A record matches the query
+        when its generalised values overlap with the region in data space defined by the query.
+
+        """
+        raise NotImplementedError()
+
+    def query_overlap(self, record, query):
+        """
+        Counts the number of input data points which are consistent with
+        both a generalised record and a query.
+
+        Parameters
+        ----------
+        record : pandas.Series or dict-like
+            The record for which the overlap size is computed. Must be
+            generalised according to this schema.
+        query : dict 
+            A dictionary describing the query's predicates. Keys must be column names from the 
+            original data. Numercial columns must be mapped to a tuple of two values which define
+            the lower and upper bound of the query (both inclusive). Categorical attributes must
+            be mapped to a set of values. The query is the conjunction of all predicates (logical
+            AND).
+
+        Returns
+        -------
+        The number of raw data points which are consistent with the given record
+        and the given query. Numerical attributes are interpreted as integers.
+        """
+        raise NotImplementedError()
+
+    def _preprocess(self, df):
+        '''
+        Overwrite this method in subclasses.
+        It receives the raw data frame as input and must return a data frame
+        containing all columns required by the generalisation schema.
+        '''
+        return df
 
     def _generalise_partition(self, df):
         '''
@@ -195,7 +264,12 @@ class GeneralisedSchema:
                 row.append(i)
                 unaltered_data.append(row)
 
-        return pd.DataFrame(unaltered_data, columns=self._unaltered + ['count', 'group_id'])
+        result = pd.DataFrame(unaltered_data, columns=self._unaltered + ['count', 'group_id'])
+
+        for col in self._unaltered:
+            result[col] = result[col].astype(df.dtypes[col])
+
+        return result
 
     def is_original_column(self, column):
         '''
