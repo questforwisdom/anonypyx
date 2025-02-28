@@ -60,6 +60,19 @@ def test_generalisation_only_counts_duplicates(mixed_df_fixture):
 
     assert_data_set_equal(df, old_df)
 
+def test_generalisation_unaltered_attributes_keep_dtype(mixed_df_fixture):
+    df, partition = mixed_df_fixture
+    df['S'] = df['S'].astype('category')
+    old_df = df.drop(4) # drop duplicate
+    old_df = old_df.drop(5) # not in partition
+    old_df = old_df.drop(6) # not in partition
+    old_df['count'] = [1,2,1]
+
+    schema = RawData.create_for_data(df, ['QI1', 'QI2'])
+    df = schema.generalise(df, [partition])
+
+    assert_data_set_equal(df, old_df)
+
 def test_overlap(mixed_schema):
     columns = mixed_schema.quasi_identifier() + ['S']
     prior_knowledge = {'QI1': 4, 'QI2': 'B'}

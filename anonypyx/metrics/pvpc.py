@@ -13,7 +13,7 @@ def percentage_of_vulnerable_population(original_df, prediction_df, confidence_l
     ----------
     original_df : pd.DataFrame
         The original data frame before anonymisation. It must comply with the output format
-        of `anonypyx.metrics.preprocess_original_data()`.
+        of `anonypyx.metrics.preprocess_original_data_for_privacy()`.
     prediction_df : pd.DataFrame
         The adversary's prediction. It must comply with the output format of 
         `anonypyx.metrics.preprocess_prediction()`.
