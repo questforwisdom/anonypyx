@@ -1,3 +1,3 @@
 from anonypyx.metrics.preprocessing import preprocess_original_data_for_privacy, preprocess_original_data_for_utility, preprocess_prediction
 from anonypyx.metrics.pvpc import percentage_of_vulnerable_population
-from anonypyx.metrics.query_error import counting_query_error
+from anonypyx.metrics.query_error import counting_query_error, CountingQueryGenerator

@@ -2,7 +2,7 @@ import pandas as pd
 
 import pytest
 
-from anonypyx.metrics.query_error import counting_query, counting_query_error
+from anonypyx.metrics.query_error import counting_query, counting_query_error, CountingQueryGenerator
 from anonypyx.generalisation import MachineReadable, RawData
 
 @pytest.fixture
@@ -138,3 +138,57 @@ def test_query_error_categorical_sensitive_attribute():
     query = {'QI1': {'A', 'C'}, 'QI2': (6, 10), 'S': {2,3}}
 
     assert pytest.approx(0.5) == counting_query_error(query, raw_df, anon_df, schema, ['QI1', 'QI2'])
+
+def test_query_generator_for_all_attributes():
+    raw_df = pd.DataFrame(data={
+        'QI1': ['A', 'A', 'B', 'C'],
+        'QI2': [1, 10, 42, -300],
+        'S': [1, 2, 3, 4],
+        'count': [2, 1, 1, 1]
+    })
+    raw_df['QI1'] = raw_df['QI1'].astype('category')
+    raw_df['S'] = raw_df['S'].astype('category')
+
+    generator = CountingQueryGenerator(raw_df, ['QI1', 'QI2'])
+
+    query = generator.generate(3, 1, True)
+
+    assert query == {'QI1': {'A', 'B', 'C'}, 'QI2': (-300, 42), 'S': {1, 2, 3, 4}}
+
+def test_query_generator_for_all_quasi_identifiers():
+    raw_df = pd.DataFrame(data={
+        'QI1': ['A', 'A', 'B', 'C'],
+        'QI2': [1, 10, 42, -300],
+        'S': [1, 2, 3, 4],
+        'count': [2, 1, 1, 1]
+    })
+    raw_df['QI1'] = raw_df['QI1'].astype('category')
+    raw_df['S'] = raw_df['S'].astype('category')
+
+    generator = CountingQueryGenerator(raw_df, ['QI1', 'QI2'])
+
+    query = generator.generate(2, 1, False)
+
+    assert query == {'QI1': {'A', 'B', 'C'}, 'QI2': (-300, 42)}
+
+def test_query_generator_volume_ratio():
+    raw_df = pd.DataFrame(data={
+        'QI1': ['A', 'A', 'B', 'C'],
+        'QI2': [1, 10, 42, -300],
+        'S': [1, 2, 3, 4],
+        'count': [2, 1, 1, 1]
+    })
+    raw_df['QI1'] = raw_df['QI1'].astype('category')
+    raw_df['S'] = raw_df['S'].astype('category')
+
+    generator = CountingQueryGenerator(raw_df, ['QI1', 'QI2'])
+
+    query = generator.generate(3, 0.5, True)
+
+    # the categorical domains are small, this leads to large rounding errors
+    # the cubic root of 0.5 is roughly 0.794
+    # this corresponds to choosing 2 values for 'QI1', 3 for 'S' and 272 for 'QI1'
+    expected_volume = 2 * 3 * 272
+    actual_volume = len(query['QI1']) * len(query['S']) * (query['QI2'][1] - query['QI2'][0] + 1)
+
+    assert pytest.approx(expected_volume) == actual_volume
