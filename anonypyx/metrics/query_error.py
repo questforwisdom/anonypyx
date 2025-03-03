@@ -97,7 +97,7 @@ class CountingQueryGenerator:
 
         for col in df.columns:
             if df[col].dtype.name == 'category':
-                self._categorical_domains[col] = df[col].unique().to_list()
+                self._categorical_domains[col] = list(df[col].unique())
             else:
                 self._integer_domains[col] = (df[col].min(), df[col].max())
 
