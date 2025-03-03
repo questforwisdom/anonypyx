@@ -57,10 +57,15 @@ def counting_query(query, df, schema, quasi_identifier):
         counterfeits = 0
         qi_record = pd.Series(qi, index=schema.quasi_identifier())
         ec_size = df.iloc[schema.match(df, qi_record, on=quasi_identifier)]['count'].sum()
-        ec_region = schema.set_cardinality(qi_record, quasi_identifier)
-        overlapping_region = schema.query_overlap(qi_record, qi_query)
 
-        c1 = overlapping_region / ec_region
+        # computing the region sizes over the entire quasi-identifier led to overflows on larger
+        # data sets such as Adult
+        c1 = 1.0
+        for col in qi_query:
+            ec_region = schema.set_cardinality(qi_record, [col])
+            overlapping_region = schema.query_overlap(qi_record, {col: qi_query[col]})
+            c1 *= overlapping_region / ec_region
+
         c2 = count / ec_size
 
         result += (ec_size - counterfeits) * c1 * c2
