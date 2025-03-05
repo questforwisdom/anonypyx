@@ -47,9 +47,9 @@ class TrajectoryAttacker(BaseAttacker):
 
     def _prepare_candidate_set(self, prior_knowledge, present_columns):
 
-        num_targets = prior_knowledge.iloc[:, 0].max() + 1
+        num_targets = prior_knowledge['ID'].max() + 1
         for target_id in range(num_targets):
-            matcher = prior_knowledge.iloc[:, 0] == target_id
+            matcher = prior_knowledge['ID'] == target_id
             target_knowledge = prior_knowledge[matcher].iloc[:, 1:]
             trajectories = []
             for _, row in target_knowledge.iterrows():

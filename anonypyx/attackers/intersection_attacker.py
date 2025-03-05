@@ -29,7 +29,7 @@ class IntersectionAttacker(BaseAttacker):
     def __init__(self, prior_knowledge, quasi_identifiers, sensitive_column, schema):
         self._candidates = []
         # TODO: use column name 'ID' instead of fixed position
-        num_targets = prior_knowledge.iloc[:, 0].max() + 1
+        num_targets = prior_knowledge['ID'].max() + 1
         for target_id in range(num_targets):
             matcher = prior_knowledge.iloc[:, 0] == target_id
             target_knowledge = prior_knowledge[matcher].iloc[:, 1:]
