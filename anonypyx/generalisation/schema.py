@@ -65,7 +65,13 @@ class GeneralisedSchema:
         part_1 = self._generalise_quasi_identifiers(df, partitions)
         part_2 = self._count_unique_unaltered_values(df, partitions)
 
-        return part_1.merge(part_2, on='group_id')
+        generalised_df = part_1.merge(part_2, on='group_id')
+
+        # Drop the internal 'group_id' column before returning the result
+        generalised_df = generalised_df.drop(columns=['group_id'])
+
+        return generalised_df
+
 
     def match(self, df, record, on):
         '''
