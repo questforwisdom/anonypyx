@@ -39,7 +39,6 @@ def test_generalise_single_value_human_readable(single_value_mixed_df_fixture):
         'QI2': 'A',
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)
@@ -54,7 +53,6 @@ def test_generalise_human_readable_output(mixed_df_fixture):
         'QI2': 'A,B',
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)

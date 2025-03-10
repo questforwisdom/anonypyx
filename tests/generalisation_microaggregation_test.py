@@ -26,7 +26,6 @@ def test_generalise_by_microaggregation(numerical_df_fixture):
         'QI2': df.loc[partition]['QI2'].mean(),
         'S': df.loc[partition]['S'].mean(),
         'count': [3],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)

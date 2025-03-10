@@ -68,7 +68,6 @@ def test_generalise_integer_data_set(numerical_df_fixture):
         'QI2_max': 5, 
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)
@@ -86,7 +85,6 @@ def test_generalise_single_value_machine_readable(single_value_mixed_df_fixture)
         'QI2_C': False,
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)
@@ -104,7 +102,6 @@ def test_generalise_mixed_data_set(mixed_df_fixture):
         'QI2_C': False,
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)
@@ -124,7 +121,6 @@ def test_generalise_categorical_sensitive_attribute(mixed_df_fixture):
         'QI2_C': False,
         'S': [10, 20],
         'count': [2, 1],
-        'group_id': 0
     })
     expected['S'] = expected['S'].astype(dtype)
 
@@ -158,7 +154,6 @@ def test_generalisation_works_without_sensitive_attribute(numerical_df_fixture):
         'S_min': 10,
         'S_max': 20,
         'count': [3],
-        'group_id': 0
     })
 
     assert_data_set_equal(result, expected)
@@ -167,7 +162,7 @@ def test_generalise_record_to_schema(mixed_schema):
     record = pd.DataFrame(data={'QI1': 4, 'QI2': 'B', 'S': 2}, index=[0])
     expected = pd.DataFrame(data={'QI1_min': 4, 'QI1_max': 4, 'QI2_A': False, 'QI2_B': True, 'QI2_C': False, 'S': 2}, index=[0])
     result = mixed_schema.generalise(record, [[0]])
-    result = result.drop(['count', 'group_id'], axis=1)
+    result = result.drop(['count'], axis=1)
 
     assert_data_set_equal(result, expected)
 
