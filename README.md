@@ -10,18 +10,23 @@ If you consider migrating from AnonyPy, keep in mind that AnonyPyx is not compat
     - k-anonymity
     - l-diversity 
     - t-closeness
-- microclustering based anonsmization algorithm MDAV-Generic [2] supporting
+- microclustering based anonymisation algorithm MDAV-Generic [2] supporting
     - k-anonymity
 - interoperability with pandas data frames
 - supports both continuous and categorical attributes 
-- image anonymisation via the k-Same family of algorithms
+- image anonymisation via the k-Same family of algorithms [3]
+- attacks on anonymised data sets:
+    - intersection attack [4]
+- privacy metrics:
+    - percentage of vulnerable population [4]
+- utility metrics:
+    - error of aggregate queries [5]
 
 ## Install
 
 ```bash
 pip install anonypyx
 ```
-
 
 ## Usage
 
@@ -56,7 +61,7 @@ anonymiser = anonypyx.Anonymiser(
     df, k=3, l=2, algorithm="Mondrian", 
     feature_columns=["age", "sex", "zip code"], 
     sensitive_column="diagnosis",
-    generalisation_strategy="human-readable
+    generalisation_strategy="human-readable"
 )
 
 # Step 3: Anonymise data (this might take a while for large data sets)
@@ -65,7 +70,7 @@ anonymised_records = anonymiser.anonymise()
 
 # Print results:
 
-anonymised_df = pd.DataFrame(anonymised_records)
+anonymised_df = anonymised_records
 print(anonymised_df)
 ```
 
@@ -79,56 +84,6 @@ Output:
 3  50-92  male,intersex  02139,20001,94130    cancer      1
 4  50-92  male,intersex  02139,20001,94130       flu      1
 5  50-92  male,intersex  02139,20001,94130    stroke      1
-```
-
-MDAV-generic:
-
-```python
-# Step 2: Prepare anonymiser
-anonymiser = anonypyx.Anonymiser(
-    df, k=3, algorithm="MDAV-generic", 
-    feature_columns=["age", "zip code", "income"], 
-    generalisation_strategy="microaggregation"
-)
-```
-
-k-Same-Eigen:
-
-```python
-import anonypyx
-import numpy as np
-import cv2
-
-from os import listdir
-from os.path import isfile, join
-
-# Step 1: Load images into single numpy array
-
-# images are loaded in grayscale
-# every image must have the same height and width
-
-path_to_dir = 'directory/containing/images/'
-height = 120
-width = 128
-files = [f for f in listdir(path_to_dir) if isfile(join(path_to_dir, f))]
-images = [cv2.imread(join(path_to_dir, f), flags = cv2.IMREAD_GRAYSCALE) for f in listdir(path_to_dir) if isfile(join(path_to_dir, f))]
-images = np.array(images)
-
-# Step 2: Prepare anonymiser
-
-anonymiser = anonypyx.kSame(images, width, height, k=5, variant='eigen')
-
-# Step 3: Anonymisation
-
-anonymised, mapping = anonymiser.anonymise()
-
-# Display the first image and its anonymised version
-
-sample_image = np.concatenate((images[0], anonymised[mapping[0]]), axis=1).astype('uint8')
-sample_image = cv2.cvtColor(sample_image, cv2.COLOR_GRAY2BGR)
-cv2.imshow("k-same-eigen", sample_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 ```
 
 ## Contributing
