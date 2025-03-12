@@ -14,10 +14,10 @@ class Trajectory:
         new_candidates = []
         matches = schema.match(release, self._record, on=shared_columns)
 
-        for match in matches:
+        for match in matches.index:
             new_trajectory = self._trajectory + [match + trajectory_offset]
-            new_record = schema.intersect(self._record, release.loc[match], on=shared_columns, take_left=take_left, take_right=take_right)
-            new_permutations = self._permutations * release.loc[match]['count']
+            new_record = schema.intersect(self._record, matches.loc[match], on=shared_columns, take_left=take_left, take_right=take_right)
+            new_permutations = self._permutations * matches.loc[match]['count']
             new_candidates.append(Trajectory(new_trajectory, new_record, new_permutations))
 
         return new_candidates

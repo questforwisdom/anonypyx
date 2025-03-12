@@ -87,9 +87,10 @@ def test_overlap(mixed_schema):
     ], columns = columns + ['count'])
 
     expected = [3, 5]
+    expected = release.iloc[[3,5]].copy()
     result = mixed_schema.match(release, prior_knowledge, on=['QI1', 'QI2'])
-
-    assert list(result) == expected
+    
+    assert_data_set_equal(result, expected)
 
 def test_record_intersection(mixed_schema):
     record_a = pd.Series({'QI1': 1, 'QI2': 'A', 'S': 4})

@@ -45,11 +45,16 @@ class RawData(schema.GeneralisedSchema):
         return df.drop('group_id', axis=1)
 
     def match(self, df, record, on):
-        df_filter = True
+        query = []
         for column in on:
-            df_filter = df_filter & (df[column] == record[column])
+            value = record[column]
+            if isinstance(value, str):
+                 query.append(f'`{column}` == "{value}"')
+            else:
+                query.append(f'`{column}` == {value}')
 
-        return df[df_filter].index
+        query = ' and '.join(query)
+        return df.query(query)
 
     def intersect(self, record_a, record_b, on, take_left, take_right):
         result = {}
@@ -74,18 +79,23 @@ class RawData(schema.GeneralisedSchema):
         return 1
 
     def select(self, df, query):
-        df_filter = True
+        df_query = []
         for col, value_range in query.items():
-            column_filter = False
             if df[col].dtype.name == "category":
+                subquery = []
                 for value in value_range:
-                    column_filter = column_filter | (df[col] == value)
+                    if isinstance(value, str):
+                        subquery.append(f'`{col}` == "{value}"')
+                    else:
+                        subquery.append(f'`{col}` == {value}')
+                df_query.append('(' + ' or '.join(subquery) + ')')
             else:
-                column_filter = (df[col] <= value_range[1]) & (df[col] >= value_range[0])
+                df_query.append(f'`{col}` >= {value_range[0]}')
+                df_query.append(f'`{col}` <= {value_range[1]}')
 
-            df_filter = df_filter & column_filter
 
-        return df[df_filter].index
+        df_query = ' and '.join(df_query)
+        return df.query(df_query).index
 
     def query_overlap(self, record, query):
         for col, value_range in query.items():

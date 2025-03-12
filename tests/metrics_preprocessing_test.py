@@ -4,6 +4,9 @@ from pandas.testing import assert_frame_equal
 import pytest
 
 from anonypyx.metrics import preprocessing as pp
+from anonypyx.generalisation import MachineReadable
+
+from tests.util import *
 
 def test_preprocess_original_data_for_privacy():
     df = pd.DataFrame(data={
@@ -38,7 +41,8 @@ def test_preprocess_original_data_for_utility():
     })
     expected['QI1'] = expected['QI1'].astype('category')
 
-    actual = pp.preprocess_original_data_for_utility(df, ['QI1', 'QI2'])
+    prepared = pp.PreparedUtilityDataFrame.from_raw_data(df, ['QI1', 'QI2'])
+    actual = prepared.df().drop(columns='group_id') # drop this column because order is nondeterministic
 
     assert_frame_equal(expected, actual, check_like=True)
 
@@ -60,7 +64,8 @@ def test_preprocess_original_data_for_utility_categorical_sensitive_attribute():
     expected['QI1'] = expected['QI1'].astype('category')
     expected['S'] = expected['S'].astype('category')
 
-    actual = pp.preprocess_original_data_for_utility(df, ['QI1', 'QI2'])
+    prepared = pp.PreparedUtilityDataFrame.from_raw_data(df, ['QI1', 'QI2'])
+    actual = prepared.df().drop(columns='group_id') # drop this column because order is nondeterministic
 
     assert_frame_equal(expected, actual, check_like=True)
 
@@ -82,3 +87,18 @@ def test_preprocess_prediction():
     actual = pp.preprocess_prediction(df)
 
     assert_frame_equal(expected, actual)
+
+def test_utility_group_sizes():
+    df = pd.DataFrame(data={
+        'QI1_A': [True, True, True, False, False],
+        'QI1_B': [False, False, False, True, True],
+        'QI1_C': [False, False, False, True, True],
+        'QI2_min': [1, 1, -42, -300, -300],
+        'QI2_max': [10, 10, -42, 42, 42],
+        'S': [1, 2, 1, 3, 4],
+        'count': [1, 1, 3, 2, 2]
+    })
+    schema = MachineReadable({'QI1': ['QI1_A', 'QI1_B', 'QI1_C']}, {'QI2': ('QI2_min', 'QI2_max')}, ['S'])
+    prepared = pp.PreparedUtilityDataFrame(df, schema, ['QI1', 'QI2'])
+
+    assert {2, 3, 4} == {prepared.group_size(0), prepared.group_size(1), prepared.group_size(2)}

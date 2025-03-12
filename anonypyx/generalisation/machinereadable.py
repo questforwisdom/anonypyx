@@ -78,21 +78,27 @@ class MachineReadable(GeneralisedSchema):
         return row
 
     def match(self, df, record, on):
-        df_filter = True
+        query = []
         for column in on:
-            column_filter = False
             if column in self._intervals:
                 min_col, max_col = self._intervals[column]
-                column_filter = (df[min_col] <= record[max_col]) & (df[max_col] >= record[min_col])
+                query.append(f'`{min_col}` <= {record[max_col]}')
+                query.append(f'`{max_col}` >= {record[min_col]}')
             elif column in self._one_hot_sets:
+                subquery = []
                 for value_column in self._one_hot_sets[column]:
                     if record[value_column] == 1:
-                        column_filter = column_filter | (df[value_column] == 1)
+                        subquery.append(f'`{value_column}` == 1')
+                query.append('(' + ' or '.join(subquery) + ')')
             else:
-                column_filter = df[column] == record[column]
-            df_filter = df_filter & column_filter
+                value = record[column]
+                if isinstance(value, str):
+                    query.append(f'`{column}` == "{value}"')
+                else:
+                    query.append(f'`{column}` == {value}')
 
-        return df[df_filter].index
+        query = ' and '.join(query)
+        return df.query(query)
 
     def intersect(self, record_a, record_b, on, take_left, take_right):
         result = {}
@@ -148,25 +154,33 @@ class MachineReadable(GeneralisedSchema):
         return result
 
     def select(self, df, query):
-        df_filter = True
+        df_query = []
         for col, value_range in query.items():
-            column_filter = False
             if col in self._intervals:
                 min_col, max_col = self._intervals[col]
-                column_filter = (df[min_col] <= value_range[1]) & (df[max_col] >= value_range[0])
+                df_query.append(f'`{min_col}` <= {value_range[1]}')
+                df_query.append(f'`{max_col}` >= {value_range[0]}')
             elif col in self._one_hot_sets:
+                subquery = []
                 for value in value_range:
-                    column_filter = column_filter | (df[col + '_' + str(value)] == 1)
+                    value_column = col + '_' + str(value)
+                    subquery.append(f'`{value_column}` == 1')
+                df_query.append('(' + ' or '.join(subquery) + ')')
             else:
                 if df[col].dtype.name == "category":
+                    subquery = []
                     for value in value_range:
-                        column_filter = column_filter | (df[col] == value)
+                        if isinstance(value, str):
+                            subquery.append(f'`{col}` == "{value}"')
+                        else:
+                            subquery.append(f'`{col}` == {value}')
+                    df_query.append('(' + ' or '.join(subquery) + ')')
                 else:
-                    column_filter = (df[col] <= value_range[1]) & (df[col] >= value_range[0])
+                    df_query.append(f'`{col}` >= {value_range[0]}')
+                    df_query.append(f'`{col}` <= {value_range[1]}')
 
-            df_filter = df_filter & column_filter
-
-        return df[df_filter].index
+        df_query = ' and '.join(df_query)
+        return df.query(df_query).index
 
     def query_overlap(self, record, query):
         result = 1

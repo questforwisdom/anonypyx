@@ -12,7 +12,7 @@ class SensitiveValueSet:
     def update(self, release):
         matches = self._schema.match(release, self._knowledge, on=self._quasi_identifier)
 
-        value_set = set(release.loc[matches][self._sensitive_column].unique())
+        value_set = set(matches[self._sensitive_column].unique())
 
         if self._value_set is None:
             self._value_set = value_set

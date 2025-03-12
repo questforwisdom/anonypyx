@@ -168,7 +168,7 @@ def test_generalise_record_to_schema(mixed_schema):
 
 def test_match(mixed_schema):
     columns = mixed_schema.quasi_identifier() + ['S']
-    prior_knowledge = {'QI1_min': 4, 'QI1_max': 4, 'QI2_A': 0, 'QI2_B': True, 'QI2_C': 0}
+    prior_knowledge = {'QI1_min': 4, 'QI1_max': 4, 'QI2_A': False, 'QI2_B': True, 'QI2_C': 0}
     release = pd.DataFrame([
         [0, 3, True,  True,  False, 200, 1], # 0
         [0, 3, True,  True,  False, 300, 2], # 1
@@ -179,10 +179,29 @@ def test_match(mixed_schema):
         [9, 9, False, True,  True, 800, 3]  # 6
     ], columns = columns + ['count'])
 
-    expected = [3, 4]
+    expected = release.iloc[[3,4]].copy()
     result = mixed_schema.match(release, prior_knowledge, on=['QI1', 'QI2'])
 
-    assert list(result) == expected
+    assert_data_set_equal(result, expected)
+
+def test_match_on_categorical_sensitive_attribute(mixed_schema):
+    columns = mixed_schema.quasi_identifier() + ['S']
+    prior_knowledge = {'QI1_min': 4, 'QI1_max': 4, 'QI2_A': False, 'QI2_B': True, 'QI2_C': 0, 'S': 'A'}
+    release = pd.DataFrame([
+        [0, 3, True,  True,  False, 'A', 1], # 0
+        [0, 3, True,  True,  False, 'B', 2], # 1
+        [2, 4, False, False, True, 'C', 2], # 2
+        [3, 4, False, True,  True, 'B', 3], # 3
+        [3, 4, False, True,  True, 'A', 1], # 4
+        [5, 8, True,  True,  True, 'C', 2], # 5
+        [9, 9, False, True,  True, 'C', 1]  # 6
+    ], columns = columns + ['count'])
+    release['S'] = release['S'].astype('category')
+
+    expected = release.iloc[[4]].copy()
+    result = mixed_schema.match(release, prior_knowledge, on=['QI1', 'QI2', 'S'])
+
+    assert_data_set_equal(result, expected)
 
 def test_record_intersection_unaltered_column(mixed_schema):
     record_a = pd.Series({'QI1_min': 1, 'QI1_max': 2, 'QI2_A': True, 'QI2_B': True, 'QI2_C': False, 'S': 4})

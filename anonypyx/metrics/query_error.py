@@ -11,7 +11,7 @@ import pandas as pd
 
 import anonypyx.generalisation
 
-def counting_query_error(query, original_df, anon_df, anon_schema, quasi_identifier):
+def counting_query_error(query, original_df, anon_df):
     """
     Computes the error of a counting query.
 
@@ -23,83 +23,85 @@ def counting_query_error(query, original_df, anon_df, anon_schema, quasi_identif
         the lower and upper bound of the query (both inclusive). Categorical attributes must
         be mapped to a set of values. The query is the conjunction of all predicates (logical
         AND).
-    original_df : pd.DataFrame
-        The original data frame before anonymisation. It must comply with the output format
-        of `anonypyx.metrics.preprocess_original_data_for_utility()`.
-    anon_df : pd.DataFrame
+    original_df : anonypyx.metrics.PreparedUtilityDataFrame
+        The original data frame before anonymisation. 
+    anon_df : anonypyx.metrics.PreparedUtilityDataFrame
         The generalised version of original_df.
-    anon_df : GeneralisedSchema
-        The schema of anon_df.
-    quasi_identifier : list of str
-        The names of the columns from original_df which are used as a quasi-identifier.
-        
     """
-    categorical = [c for c in original_df.columns if original_df[c].dtype == 'category']
-    numerical = [c for c in original_df.columns if original_df[c].dtype != 'category']
-    raw_schema = anonypyx.generalisation.RawData(categorical, numerical, quasi_identifier)
-
-    true_count = counting_query(query, original_df, raw_schema, quasi_identifier)
-    anon_count = counting_query(query, anon_df, anon_schema, quasi_identifier)
+    true_count = counting_query(query, original_df)
+    anon_count = counting_query(query, anon_df)
 
     return true_count - anon_count
 
-def counting_query(query, df, schema, quasi_identifier):
-    full_matches = schema.select(df, query)
+def counting_query(query, prepared_df):
+    """
+    Processes a counting query on a generalised data frame.
 
-    matches_per_ec = df.loc[full_matches].groupby(by=schema.quasi_identifier(), observed=True)
+    Parameters
+    ----------
+    query : dict 
+        A dictionary describing the query's predicates. Keys must be column names from the 
+        original data. Numercial columns must be mapped to a tuple of two values which define
+        the lower and upper bound of the query (both inclusive). Categorical attributes must
+        be mapped to a set of values. The query is the conjunction of all predicates (logical
+        AND).
+    prepared_df : anonypyx.metrics.PreparedUtilityDataFrame
+        The data frame to query.
+    
+    Returns
+    -------
+    The approximate number of data points matching the query as a floating-point number.
+    """
+    qi_query = {k:v for k,v in query.items() if k in prepared_df.original_quasi_identifier()}
 
-    result = 0.0
+    matches = prepared_df.df().loc[prepared_df.schema().select(prepared_df.df(), query)].groupby('group_id', sort=False)
 
-    qi_query = {k:v for k,v in query.items() if k in quasi_identifier}
+    full_matches = matches['count'].sum()
 
-    for qi, group_df in matches_per_ec:
-        count = group_df['count'].sum()
+    qis = matches.nth(0)
+
+    if len(qis) == 0:
+        return 0.0
+
+    def count_in_ec(row):
+        ec_size  = prepared_df.group_size(row['group_id'])
         counterfeits = 0
-        qi_record = pd.Series(qi, index=schema.quasi_identifier())
-        ec_size = df.iloc[schema.match(df, qi_record, on=quasi_identifier)]['count'].sum()
-
-        # computing the region sizes over the entire quasi-identifier led to overflows on larger
-        # data sets such as Adult
         c1 = 1.0
         for col in qi_query:
-            ec_region = schema.set_cardinality(qi_record, [col])
-            overlapping_region = schema.query_overlap(qi_record, {col: qi_query[col]})
+            ec_region = prepared_df.schema().set_cardinality(row, [col])
+            overlapping_region = prepared_df.schema().query_overlap(row, {col: qi_query[col]})
             c1 *= overlapping_region / ec_region
 
-        c2 = count / ec_size
+        c2 = full_matches.loc[row['group_id']] / ec_size
+        return (ec_size - counterfeits) * c1 * c2
 
-        result += (ec_size - counterfeits) * c1 * c2
-
-    return result
+    return qis.apply(count_in_ec, axis=1).sum()
 
 class CountingQueryGenerator:
     """
     Generates random counting queries for a given data frame.
     """
-    def __init__(self, df, quasi_identifiers):
+    def __init__(self, prepared_df):
         """
         Constructor. 
 
         Parameters
         ----------
         query : dict 
-        df : pd.DataFrame
-            The original data frame before anonymisation. It must comply with the output format
-            of `anonypyx.metrics.preprocess_original_data_for_utility()`.
-        quasi_identifier : list of str
-            The names of the columns which are used as a quasi-identifier.
+        prepared_df : anonypyx.metrics.PreparedUtilityDataFrame
+            The original data frame before anonymisation.
         """
-        self._quasi_identifiers = quasi_identifiers[:]
-        self._unaltered = [col for col in df.columns if col not in self._quasi_identifiers and col != 'count']
+        self._quasi_identifiers = prepared_df.original_quasi_identifier()[:]
+        self._unaltered = [col for col in prepared_df.df().columns if col not in self._quasi_identifiers and col not in ['group_id', 'count']]
 
         self._integer_domains = {}
         self._categorical_domains = {}
 
-        for col in df.columns:
-            if df[col].dtype.name == 'category':
-                self._categorical_domains[col] = list(df[col].unique())
+        for col in prepared_df.df().columns:
+            if prepared_df.df()[col].dtype.name == 'category':
+                self._categorical_domains[col] = list(prepared_df.df()[col].unique())
             else:
-                self._integer_domains[col] = (df[col].min(), df[col].max())
+                self._integer_domains[col] = (prepared_df.df()[col].min(), prepared_df.df()[col].max())
 
     def generate(self, num_predicates, expected_selectivity, use_sensitive=True):
         """
