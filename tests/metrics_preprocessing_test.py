@@ -101,4 +101,5 @@ def test_utility_group_sizes():
     schema = MachineReadable({'QI1': ['QI1_A', 'QI1_B', 'QI1_C']}, {'QI2': ('QI2_min', 'QI2_max')}, ['S'])
     prepared = pp.PreparedUtilityDataFrame(df, schema, ['QI1', 'QI2'])
 
+    assert 3 == prepared.num_groups()
     assert {2, 3, 4} == {prepared.group_size(0), prepared.group_size(1), prepared.group_size(2)}

@@ -138,9 +138,9 @@ pytest
 
 ### 0.2.9
 
-- added privacy and utility metrics in subpackage `anonypyx.metrics`
 - added privacy metric *percentage of vulnerable population* [4]
 - added counting query error as a utility metric [5]
+- added the *discernibility penalty* [6] as a utility metric
 
 ## References
 
@@ -149,5 +149,7 @@ pytest
 - [3]: E. M. Newton, L. Sweeney, and B. Malin, ‘Preserving privacy by de-identifying face images’, IEEE Transactions on Knowledge and Data Engineering, vol. 17, no. 2, pp. 232–243, Feb. 2005, doi: 10.1109/TKDE.2005.32.
 - [4]: Ganta, S. R., Kasiviswanathan, S. P., & Smith, A. (2008). Composition attacks and auxiliary information in data privacy. Proceedings of the 14th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 265–273.
 - [5]: Xiao, X., & Tao, Y. (2007). M-invariance: Towards privacy preserving re-publication of dynamic datasets. Proceedings of the 2007 ACM SIGMOD International Conference on Management of Data, 689–700. https://doi.org/10.1145/1247480.1247556
+- [6]: Bayardo, R. J., & Agrawal, R. (2005). Data privacy through optimal k-anonymization. 21st International Conference on Data Engineering (ICDE’05), 217–228. https://doi.org/10.1109/ICDE.2005.42
+
 
 

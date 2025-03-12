@@ -108,6 +108,9 @@ class PreparedUtilityDataFrame:
         """
         return self._group_sizes[group_id]
 
+    def num_groups(self):
+        return len(self._group_sizes)
+
     @classmethod
     def from_raw_data(cls, df, quasi_identifier):
         """
