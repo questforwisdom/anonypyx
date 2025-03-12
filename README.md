@@ -21,6 +21,7 @@ If you consider migrating from AnonyPy, keep in mind that AnonyPyx is not compat
     - percentage of vulnerable population [4]
 - utility metrics:
     - error of aggregate queries [5]
+    - discernibility penalty [6]
 
 ## Install
 
