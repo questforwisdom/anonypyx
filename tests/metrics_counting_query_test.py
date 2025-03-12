@@ -32,6 +32,30 @@ def machine_readable_df():
     schema = MachineReadable({'QI1': ['QI1_A', 'QI1_B', 'QI1_C']}, {'QI2': ['QI2_min', 'QI2_max']}, ['S'])
     return PreparedUtilityDataFrame(df, schema, ['QI1', 'QI2'])
 
+@pytest.fixture
+def query_error_dfs():
+    raw_df = pd.DataFrame(data={
+        'QI1': ['A', 'A', 'B', 'C'],
+        'QI2': [1, 10, -42, -300],
+        'S': [1, 2, 3, 4],
+        'count': [2, 1, 1, 1]
+    })
+    raw_df['QI1'] = raw_df['QI1'].astype('category')
+    anon_df = pd.DataFrame(data={
+        'QI1_A': [True, True, False, False],
+        'QI1_B': [False, False, True, True],
+        'QI1_C': [False, False, True, True],
+        'QI2_min': [1, 1, -300, -300],
+        'QI2_max': [10, 10, -42, -42],
+        'S': [1, 2, 3, 4],
+        'count': [2, 1, 1, 1]
+    })
+    anon_schema = MachineReadable({'QI1': ['QI1_A', 'QI1_B', 'QI1_C']}, {'QI2': ['QI2_min', 'QI2_max']}, ['S'])
+    raw_schema = RawData(['QI1'], ['QI2', 'S'], ['QI1', 'QI2'])
+    raw_prepared = PreparedUtilityDataFrame(raw_df, raw_schema, ['QI1', 'QI2'])
+    anon_prepared = PreparedUtilityDataFrame(anon_df, anon_schema, ['QI1', 'QI2'])
+    return raw_prepared, anon_prepared
+
 def test_counting_query_raw_data_categorical_attribute(raw_data_df):
     query = {'QI1': {'A', 'B'}}
     assert pytest.approx(3.0) == counting_query(query, raw_data_df)
@@ -85,14 +109,31 @@ def test_counting_query_machine_readable_data_no_match(machine_readable_df):
     query = {'QI1': {'C'}, 'QI2': (1, 10), 'S': (2,3)}
     assert pytest.approx(0.0) == counting_query(query, machine_readable_df)
 
-def test_query_error():
+def test_query_error(query_error_dfs):
+    raw_prepared, anon_prepared = query_error_dfs
+    query = {'QI1': {'A', 'C'}, 'QI2': (6, 10), 'S': (2,3)}
+    assert pytest.approx(0.5) == counting_query_error(query, raw_prepared, anon_prepared)
+
+def test_query_error_not_match_on_raw_data(query_error_dfs):
+    raw_prepared, anon_prepared = query_error_dfs
+    query = {'QI1': {'C'}, 'S': (3,3)}
+    assert pytest.approx(0.0) == counting_query(query, raw_prepared)
+    assert pytest.approx(0.5) == counting_query(query, anon_prepared)
+
+    try:
+        counting_query_error(query, raw_prepared, anon_prepared)
+        assert False
+    except ValueError:
+        pass
+
+def test_query_error_is_not_negative(query_error_dfs):
+    raw_prepared, anon_prepared = query_error_dfs
     raw_df = pd.DataFrame(data={
         'QI1': ['A', 'A', 'B', 'C'],
-        'QI2': [1, 10, 42, -300],
+        'QI2': [1, 10, -42, -300],
         'S': [1, 2, 3, 4],
         'count': [2, 1, 1, 1]
     })
-    raw_df['QI1'] = raw_df['QI1'].astype('category')
     anon_df = pd.DataFrame(data={
         'QI1_A': [True, True, False, False],
         'QI1_B': [False, False, True, True],
@@ -102,17 +143,15 @@ def test_query_error():
         'S': [1, 2, 3, 4],
         'count': [2, 1, 1, 1]
     })
-    anon_schema = MachineReadable({'QI1': ['QI1_A', 'QI1_B', 'QI1_C']}, {'QI2': ['QI2_min', 'QI2_max']}, ['S'])
-    raw_schema = RawData(['QI1'], ['QI2', 'S'], ['QI1', 'QI2'])
-    raw_prepared = PreparedUtilityDataFrame(raw_df, raw_schema, ['QI1', 'QI2'])
-    anon_prepared = PreparedUtilityDataFrame(anon_df, anon_schema, ['QI1', 'QI2'])
-    query = {'QI1': {'A', 'C'}, 'QI2': (6, 10), 'S': (2,3)}
-    assert pytest.approx(0.5) == counting_query_error(query, raw_prepared, anon_prepared)
+    query = {'QI1': {'A', 'C'}, 'S': (1,3)}
+    assert pytest.approx(3.0) == counting_query(query, raw_prepared)
+    assert pytest.approx(3.5) == counting_query(query, anon_prepared)
+    assert pytest.approx(0.5/3.0) == counting_query_error(query, raw_prepared, anon_prepared)
 
 def test_query_error_categorical_sensitive_attribute():
     raw_df = pd.DataFrame(data={
         'QI1': ['A', 'A', 'B', 'C'],
-        'QI2': [1, 10, 42, -300],
+        'QI2': [1, 10, -42, -300],
         'S': [1, 2, 3, 4],
         'count': [2, 1, 1, 1]
     })

@@ -27,11 +27,23 @@ def counting_query_error(query, original_df, anon_df):
         The original data frame before anonymisation. 
     anon_df : anonypyx.metrics.PreparedUtilityDataFrame
         The generalised version of original_df.
+
+    Returns
+    -------
+    The relative absolute error of the query run on anon_df compared to original_df.
+
+    Raises
+    ------
+    ValueError if the query does not match any data point from the original data frame
+    (computing the relative error would entail a divide by zero in this case).
     """
     true_count = counting_query(query, original_df)
     anon_count = counting_query(query, anon_df)
 
-    return true_count - anon_count
+    if true_count == 0.0:
+        raise ValueError('Query does not match any original data points.')
+
+    return abs(true_count - anon_count) / true_count
 
 def counting_query(query, prepared_df):
     """
