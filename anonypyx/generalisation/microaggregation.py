@@ -32,5 +32,5 @@ class Microaggregation(GeneralisedSchema):
     def _generalise_partition(self, df):
         row = []
         for col in self._integer:
-            row.append(df[col].mean())
+            row.append(df[col].astype(float).mean())  # Convert to float before computing mean
         return row

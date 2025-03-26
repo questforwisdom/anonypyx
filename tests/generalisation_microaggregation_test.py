@@ -22,10 +22,11 @@ def test_generalise_by_microaggregation(numerical_df_fixture):
     result = strategy.generalise(df, [partition])
 
     expected = pd.DataFrame({
-        'QI1': df.loc[partition]['QI1'].mean(),
-        'QI2': df.loc[partition]['QI2'].mean(),
-        'S': df.loc[partition]['S'].mean(),
-        'count': [3],
+        'QI1': [df.loc[partition]['QI1'].mean()],
+        'QI2': [df.loc[partition]['QI2'].mean()],
+        'S': [df.loc[partition]['S'].mean()],
+        'count': [3]
     })
-
     assert_data_set_equal(result, expected)
+
+
