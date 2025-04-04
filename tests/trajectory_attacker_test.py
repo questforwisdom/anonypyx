@@ -19,6 +19,30 @@ def mixed_schema():
 
     return attacker, quasi_identifiers
 
+def test_attacker_works_when_id_is_not_the_first_column():
+    prior_knowledge = pd.DataFrame(data={
+        'QI1_min': [1, 3],
+        'QI1_max': [1, 3],
+        'QI2_A': [True, False],
+        'ID': [0, 1],
+        'QI2_B': [False, True]
+    })
+    schema = generalisation.MachineReadable({'QI2': ['QI2_A', 'QI2_B']}, {'QI1': ['QI1_min', 'QI1_max']}, ['S'])
+    quasi_identifiers = ['QI1', 'QI2']
+    attacker = TrajectoryAttacker(prior_knowledge, quasi_identifiers, schema)
+    release = pd.DataFrame(data={
+        'QI1_min': [1, 1, 3, 3],
+        'QI1_max': [2, 2, 3, 3],
+        'QI2_A': [True, True, True, True],
+        'QI2_B': [False, False, True, True],
+        'S': [1, 2, 3, 4],
+        'count': [1, 2, 2, 1]
+    })
+    attacker.observe(release, quasi_identifiers + ['S'], [0, 1])
+
+    assert attacker.predict(0, 'S') == {1: 1,2: 2}
+    assert attacker.predict(1, 'S') == {3: 2,4: 1}
+
 def test_linking_attack(mixed_schema):
     attacker, quasi_identifiers = mixed_schema
     release = pd.DataFrame(data={

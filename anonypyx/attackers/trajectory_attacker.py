@@ -2,7 +2,7 @@ import numpy as np
 import exact_multiset_cover as ec
 
 from anonypyx.attackers.util import split_columns
-from anonypyx.attackers.base_attacker import BaseAttacker
+from anonypyx.attackers.base_attacker import BaseAttacker, parse_prior_knowledge
 
 class Trajectory:
     def __init__(self, trajectory, record, permutations):
@@ -39,6 +39,26 @@ class Trajectory:
 
 class TrajectoryAttacker(BaseAttacker):
     def __init__(self, prior_knowledge, present_columns, schema):
+        '''
+        Constructor.
+
+        Parameters
+        ----------
+        prior_knowledge : pandas.DataFrame
+            A data frame containing the attacker's prior knowledge about their targets. It must use the
+            same generalisation schema as the data frames the attacker will observe() (minus the column
+            'count'). Furthermore, it must contain a column 'ID' which uniquely identifies every target.
+            The ID must start at zero and increase strictly monotonically (i.e. IDs must be 0, 1, ...,
+            num_targets - 1). The data frame may contain multiple rows with the same ID which is
+            interpreted as an attacker having alternative hypotheses about the target. At least one
+            hypothesis (row) for every ID must be true.
+        present_columns : list of str
+            The names of the columns in the original data frames (before generalisation) which are
+            contained in prior_knowledge (i.e. those for which the attacker knows the exact values).
+        schema : anonypyx.generalisation.GeneralisedSchema
+            The generalisation schema used by the data frames the attacker will observe() and by
+            prior_knowledge.
+        '''
         self._record_counts = []
         self._target_trajectories = []
         self._target_known_columns = []
@@ -46,16 +66,14 @@ class TrajectoryAttacker(BaseAttacker):
         self._prepare_candidate_set(prior_knowledge, present_columns)
 
     def _prepare_candidate_set(self, prior_knowledge, present_columns):
-
-        num_targets = prior_knowledge['ID'].max() + 1
-        for target_id in range(num_targets):
-            matcher = prior_knowledge['ID'] == target_id
-            target_knowledge = prior_knowledge[matcher].iloc[:, 1:]
+        def id_callback(target_id, target_knowledge):
             trajectories = []
             for _, row in target_knowledge.iterrows():
                 trajectories.append(Trajectory([target_id], row, 1))
             self._target_trajectories.append(trajectories)
             self._target_known_columns.append(present_columns[:])
+
+        num_targets = parse_prior_knowledge(prior_knowledge, id_callback)
 
         self._record_counts = [1] * num_targets
 
