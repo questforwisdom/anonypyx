@@ -143,6 +143,10 @@ pytest
 - added counting query error as a utility metric [5]
 - added the *discernibility penalty* [6] as a utility metric
 
+## 0.2.10
+
+- bugfixes
+
 ## References
 
 - [1]: LeFevre, K., DeWitt, D. J., & Ramakrishnan, R. (2006). Mondrian multidimensional K-anonymity. 22nd International Conference on Data Engineering (ICDE’06), 25–25. https://doi.org/10.1109/ICDE.2006.101
