@@ -132,8 +132,8 @@ class PreparedUtilityDataFrame:
         The PreparedUtilityDataFrame for the given data frame.
         """
         df = df.drop('ID', axis=1)
-        categorical = [c for c in df.columns if df[c].dtype == 'category']
-        numerical = [c for c in df.columns if df[c].dtype != 'category']
+        categorical = [c for c in df.columns if df[c].dtype.name == 'category']
+        numerical = [c for c in df.columns if df[c].dtype.name != 'category']
         schema = anonypyx.generalisation.RawData(categorical, numerical, quasi_identifier)
         df = schema.generalise(df, [[i] for i in df.index])
         return PreparedUtilityDataFrame(df, schema, quasi_identifier)
