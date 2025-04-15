@@ -17,18 +17,9 @@ class MachineReadable(GeneralisedSchema):
         one_hot_sets = {col: [col + '_' + val for val in df[col].unique()] for col in categorical}
         intervals = {col: (col + '_min', col + '_max') for col in integer}
 
-        # Define column types
-        column_types = {}
-        for col in categorical:
-            column_types[col] = 'category'
-        for col in integer:
-            column_types[col] = 'numerical'
-        for col in unaltered:
-            column_types[col] = 'numerical' if pd.api.types.is_numeric_dtype(df[col]) else 'category'
+        return MachineReadable(one_hot_sets, intervals, unaltered)
 
-        return MachineReadable(one_hot_sets, intervals, unaltered, column_types)
-
-    def __init__(self, one_hot_sets, intervals, unaltered, column_types):
+    def __init__(self, one_hot_sets, intervals, unaltered):
         '''
         Constructor
 
@@ -43,13 +34,10 @@ class MachineReadable(GeneralisedSchema):
             column (in that order)
         unaltered : list of str
             List of column names which are not quasi-identifiers.
-        column_types : dict mapping str to str
-            The column names are the keys. They are mapped to either 'categorical' or 'numerical'.
         '''
         super().__init__(unaltered)
         self._one_hot_sets = one_hot_sets
         self._intervals = intervals
-        self._column_types = column_types
 
     def _preprocess(self, df):
         for column, interval in self._intervals.items():
@@ -214,7 +202,10 @@ class MachineReadable(GeneralisedSchema):
 
                 result *= matches
             else:
-                if self._column_types[col] == 'categorical':
+                # TODO: checking pandas dtype does not work with series
+                # the schema should now wheter the column is categorical or numerical
+                # this is a workaround for now...
+                if isinstance(value_range, set):
                     if record[col] not in value_range:
                         return 0
                 else:
