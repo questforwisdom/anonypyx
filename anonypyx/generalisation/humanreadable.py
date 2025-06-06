@@ -11,6 +11,10 @@ class HumanReadable(GeneralisedSchema):
         categorical, integer, unaltered = build_column_groups(df, quasi_identifiers)
         return HumanReadable(categorical, integer, unaltered)
 
+    @classmethod
+    def from_json_dict(cls, json_dict):
+        return HumanReadable(json_dict['categorical'], json_dict['integer'], json_dict['unaltered'])
+
     def __init__(self, categorical, integer, unaltered):
         '''
         Constructor.
@@ -27,6 +31,9 @@ class HumanReadable(GeneralisedSchema):
         super().__init__(unaltered)
         self._categorical = categorical
         self._integer = integer
+
+    def to_json_dict(self):
+        return {'categorical': self._categorical, 'integer': self._integer, 'unaltered': self._unaltered}
 
     def quasi_identifier(self):
         return self._integer + self._categorical

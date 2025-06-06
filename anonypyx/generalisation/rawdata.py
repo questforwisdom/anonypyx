@@ -13,6 +13,10 @@ class RawData(schema.GeneralisedSchema):
 
         return RawData(categorical, integer, quasi_identifiers)
 
+    @classmethod
+    def from_json_dict(cls, json_dict):
+        return RawData(json_dict['categorical'], json_dict['integer'], json_dict['quasi_identifier'])
+
     def __init__(self, categorical, integer, quasi_identifier):
         '''
         Constructor
@@ -30,6 +34,9 @@ class RawData(schema.GeneralisedSchema):
         self._quasi_identifier = quasi_identifier
         self._categorical = categorical
         self._integer = integer
+
+    def to_json_dict(self):
+        return {'categorical': self._categorical, 'integer': self._integer, 'quasi_identifier': self._quasi_identifier}
 
     def quasi_identifier(self):
         return self._quasi_identifier[:]

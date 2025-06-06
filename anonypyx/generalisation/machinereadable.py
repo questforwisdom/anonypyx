@@ -19,6 +19,10 @@ class MachineReadable(GeneralisedSchema):
 
         return MachineReadable(one_hot_sets, intervals, unaltered)
 
+    @classmethod
+    def from_json_dict(cls, json_dict):
+        return MachineReadable(json_dict['one_hot_sets'], json_dict['intervals'], json_dict['unaltered'])
+
     def __init__(self, one_hot_sets, intervals, unaltered):
         '''
         Constructor
@@ -39,7 +43,11 @@ class MachineReadable(GeneralisedSchema):
         self._one_hot_sets = one_hot_sets
         self._intervals = intervals
 
+    def to_json_dict(self):
+        return {'one_hot_sets': self._one_hot_sets, 'intervals': self._intervals, 'unaltered': self._unaltered}
+
     def _preprocess(self, df):
+
         for column, interval in self._intervals.items():
             df[interval[0]] = df[column]
             df[interval[1]] = df[column]

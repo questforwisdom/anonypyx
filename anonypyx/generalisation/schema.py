@@ -36,12 +36,34 @@ class GeneralisedSchema:
         '''
         raise NotImplementedError()
 
+    @classmethod
+    def from_json_dict(cls, json_dict):
+        '''
+        Returns a GeneralisedSchema instance corresponding to the given dictionary.
+
+        Parameters
+        ----------
+        json_dict : dict
+            The dictionary must be created by `to_json_dict()`.
+        '''
+        raise NotImplementedError()
+
     def __init__(self, unaltered_columns):
         '''
         Constructor. Pass the list of column names which are not generalised
         as an argument.
         '''
         self._unaltered = unaltered_columns
+
+    def to_json_dict(self):
+        '''
+        Returns a dictionary representation of this object which can be used for serialisation.
+
+        Returns
+        -------
+        A dictionary which can be used to reconstruct this object via `from_json_dict()`.
+        '''
+        raise NotImplementedError()
 
     def generalise(self, df, partitions):
         '''

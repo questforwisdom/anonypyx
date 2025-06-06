@@ -12,6 +12,10 @@ class Microaggregation(GeneralisedSchema):
         _, integer, unaltered = build_column_groups(df, quasi_identifiers)
         return Microaggregation(integer, unaltered)
 
+    @classmethod
+    def from_json_dict(cls, json_dict):
+        return Microaggregation(json_dict['integer'], json_dict['quasi_identifier'])
+
     def __init__(self, integer, unaltered):
         '''
         Constructor.
@@ -25,6 +29,9 @@ class Microaggregation(GeneralisedSchema):
         '''
         super().__init__(unaltered)
         self._integer = integer
+
+    def to_json_dict(self):
+        return {'integer': self._integer, 'unaltered': self._unaltered}
 
     def quasi_identifier(self):
         return self._integer

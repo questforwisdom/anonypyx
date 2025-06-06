@@ -2,3 +2,4 @@ from anonypyx.generalisation.machinereadable import MachineReadable
 from anonypyx.generalisation.humanreadable import HumanReadable
 from anonypyx.generalisation.microaggregation import Microaggregation
 from anonypyx.generalisation.rawdata import RawData
+from anonypyx.generalisation.serialisation import save_schema, load_schema
