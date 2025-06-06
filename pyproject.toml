@@ -26,7 +26,6 @@ dependencies = [
     "numpy>=1.21.3",
     "scikit-learn>=1.0.1",
     "scipy>=1.11.3",
-    "exact_multiset_cover>=1.5.0",
 ]
 requires-python = ">=3.9"
 
@@ -37,4 +36,4 @@ dev = ["pytest"]
 Homepage = "https://github.com/questforwisdom/anonypyx"
 
 [tool.setuptools]
-packages = ["anonypyx", "anonypyx.generalisation", "anonypyx.attackers", "anonypyx.generalisation", "anonypyx.metrics"]
+packages = ["anonypyx", "anonypyx.generalisation", "anonypyx.attackers", "anonypyx.generalisation", "anonypyx.metrics", "anonypyx.dlx"]

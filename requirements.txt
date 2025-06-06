@@ -3,4 +3,3 @@ pandas>=1.5.0
 numpy>=1.21.3
 scikit-learn>=1.0.1
 scipy>=1.11.3
-exact_multiset_cover>=1.5.1

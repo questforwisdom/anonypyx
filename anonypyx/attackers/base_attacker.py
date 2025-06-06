@@ -32,6 +32,12 @@ class BaseAttacker:
         '''
         raise NotImplementedError()
 
+    def finalise(self):
+        '''
+        Call this method once all releases have been observed to complete the attack.
+        '''
+        pass
+
 def parse_prior_knowledge(prior_knowledge, id_callback):
     '''
     Helper function for attackers which parses the prior knowledge.
