@@ -122,9 +122,6 @@ class Anonymiser:
         if algorithm == "Mondrian":
             self.algorithm = mondrian.Mondrian(df, quasi_identifiers)
             self.parameters = privacy_models
-
-            m = mondrian.Mondrian(df, quasi_identifiers)
-            partitions = m.partition(privacy_models)
         elif algorithm == "MDAV-generic":
             if l is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support l-diversity.")
