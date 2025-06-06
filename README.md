@@ -128,10 +128,10 @@ pytest
 
 ### 0.2.5
 
-- renamed `Anonymizer` and its `anonymize` method to BE spelling
 - added the `generalisation_strategy` parameter to Anonymiser which determines how generalised data is represented (old behaviour is `"human-readable"`)
 - added the generalisation strategies `"machine-readable"` and `"microaggregation"`
 - added some attacks on anonymised data which can be found in the submodule `attackers`
+- renamed `Anonymizer` and its `anonymize` method to BE spelling
 
 ### 0.2.6 - 0.2.8
 
@@ -146,6 +146,14 @@ pytest
 ## 0.2.10
 
 - bugfixes
+
+## 0.2.11
+
+- added (de-)serialisation of generalisation schemas
+- added `finalise()` method to all attackers for consistency
+- removed dependency to `exact_multiset_cover`, anonypyx is platform-independent again
+- renamed `prune_multiset_exact_cover()` method in `TrajectoryAttacker` to `finalise()`
+- improved time efficiency of TrajectoryAttacker
 
 ## References
 
