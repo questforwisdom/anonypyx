@@ -120,16 +120,14 @@ class Anonymiser:
                 privacy_models.append(models.tCloseness(t, df, sensitive_attribute, models.earth_movers_distance_categorical))
     
         if algorithm == "Mondrian":
-            self.algorithm = mondrian.Mondrian(df, quasi_identifiers)
-            self.parameters = privacy_models
+            self.algorithm = mondrian.Mondrian(privacy_models, quasi_identifiers)
         elif algorithm == "MDAV-generic":
             if l is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support l-diversity.")
             if t is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support t-closeness.")
     
-            self.algorithm = microaggregation.MDAVGeneric(df, quasi_identifiers)
-            self.parameters = k
+            self.algorithm = microaggregation.MDAVGeneric(k, quasi_identifiers)
         self.df = df
         self.quasi_identifiers = quasi_identifiers
         self.sensitive_attribute = sensitive_attribute
@@ -143,7 +141,7 @@ class Anonymiser:
         -------
             List of anonymised records.
         '''
-        partitions = self.algorithm.partition(self.parameters)
+        partitions = self.algorithm.partition(self.df)
         generalisation = self.generalisation_strategy_type.create_for_data(self.df, self.quasi_identifiers)
         return generalisation.generalise(self.df, partitions)
 

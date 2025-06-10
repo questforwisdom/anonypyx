@@ -20,35 +20,34 @@ class MDAVGeneric:
     (F-MDAV): An algorithm for k-anonymous microaggregation in big data. Engineering 
     Applications of Artificial Intelligence, 90, 103531. 
     '''
-    def __init__(self, df, feature_columns):
-        self.df = df
+    def __init__(self, k, feature_columns):
+        self.k = k
         self.feature_columns = feature_columns
-        self.num_data_points = len(self.df.index)
 
-    def partition(self, k):
-        self.__prepare_data()
+    def partition(self, df):
+        self.__prepare_data(df)
         self.__build_distance_matrix()
         self.clusters = []
 
-        while (len(self.remaining_indices) >= 3 * k):
+        while (len(self.remaining_indices) >= 3 * self.k):
             centroid = self.__find_centroid()
             far_end_dist = self.__get_distance_vector_of_most_distant_point(centroid)
-            self.__assign_closest_points_to_new_cluster(far_end_dist, k)
+            self.__assign_closest_points_to_new_cluster(far_end_dist, self.k)
 
             other_end_dist = self.__get_distance_vector_of_most_distant_point_from_data_point(far_end_dist.loc[self.remaining_indices])
-            self.__assign_closest_points_to_new_cluster(other_end_dist, k)
+            self.__assign_closest_points_to_new_cluster(other_end_dist, self.k)
 
-        if len(self.remaining_indices) >= 2 * k:
+        if len(self.remaining_indices) >= 2 * self.k:
             centroid = self.__find_centroid()
             far_end_dist = self.__get_distance_vector_of_most_distant_point(centroid)
-            self.__assign_closest_points_to_new_cluster(far_end_dist, k)
+            self.__assign_closest_points_to_new_cluster(far_end_dist, self.k)
 
         self.clusters.append(self.remaining_indices)
 
         return self.clusters 
 
-    def __prepare_data(self):
-        self.remaining = self.df.drop(columns=[column for column in self.df.columns if column not in self.feature_columns])
+    def __prepare_data(self, df):
+        self.remaining = df.drop(columns=[column for column in df.columns if column not in self.feature_columns])
         self.remaining_indices = self.remaining.index
         self.categorical = [column for column in self.feature_columns if self.remaining[column].dtype == "category"]
         self.continuous  = [column for column in self.feature_columns if self.remaining[column].dtype != "category"]
@@ -95,7 +94,6 @@ class MDAVGeneric:
         self.distance_matrix = pd.DataFrame(squareform(dist_categorical + dist_continuous))
 
 
-
 class RandomChoiceAggregation:
     '''
     Implements the microaggregation algorithm originally used
@@ -111,27 +109,26 @@ class RandomChoiceAggregation:
     doi: 10.1109/TKDE.2005.32.
 
     '''
-    def __init__(self, df, feature_columns):
-        self.df = df
+    def __init__(self, k, feature_columns):
+        self.k = k
         self.feature_columns = feature_columns
-        self.num_data_points = len(self.df.index)
 
-    def partition(self, k):
-        self.__prepare_data()
+    def partition(self, df):
+        self.__prepare_data(df)
         self.clusters = []
 
-        while (len(self.remaining_indices) >= 2 * k):
+        while (len(self.remaining_indices) >= 2 * self.k):
             # choose random point
             # assign closest points to new cluster
             point = self.remaining.loc[self.remaining_indices].sample(n=1)
-            self.__assign_closest_points_to_new_cluster(point, k)
+            self.__assign_closest_points_to_new_cluster(point, self.k)
             
         self.clusters.append(self.remaining_indices)
 
         return self.clusters
 
-    def __prepare_data(self):
-        self.remaining = self.df.drop(columns=[column for column in self.df.columns if column not in self.feature_columns])
+    def __prepare_data(self, df):
+        self.remaining = df.drop(columns=[column for column in df.columns if column not in self.feature_columns])
         self.remaining_indices = self.remaining.index
 
     def __assign_closest_points_to_new_cluster(self, point, k):

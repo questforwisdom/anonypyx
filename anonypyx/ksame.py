@@ -103,8 +103,8 @@ class kSame:
         '''
         self.__setup()
 
-        clustering_algorithm = self.clustering_implementation(self.eigenface_df, self.eigenface_df.columns)
-        clusters = clustering_algorithm.partition(self.k)
+        clustering_algorithm = self.clustering_implementation(self.k, self.eigenface_df.columns)
+        clusters = clustering_algorithm.partition(self.eigenface_df)
 
         anonymized = []
 
@@ -118,7 +118,6 @@ class kSame:
         mapping = {image_num: cluster_num for cluster_num in range(len(clusters)) for image_num in clusters[cluster_num]}
 
         return anonymized, mapping
-        
 
     def __setup(self):
         pixels = self.original_shape[0] * self.original_shape[1]
@@ -137,6 +136,6 @@ class kSame:
 
     def anonymize_kSameEigen(self, cluster):
         result = self.eigenface_df.loc[cluster].mean()
-        result = self.pca.inverse_transform([result.to_numpy()])[0] 
+        result = self.pca.inverse_transform([result.to_numpy()])[0]
         return result.reshape(self.original_shape)
 

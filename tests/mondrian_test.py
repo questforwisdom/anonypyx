@@ -25,8 +25,8 @@ def test_k_anonymity():
         df[name] = df[name].astype("category")
 
     feature_columns = ["col1", "col2", "col3"]
-    m = mondrian.Mondrian(df, feature_columns)
-    partitions = m.partition([models.kAnonymity(2)])
+    m = mondrian.Mondrian([models.kAnonymity(2)], feature_columns)
+    partitions = m.partition(df)
     print(f"partitions: {partitions}")
 
 
@@ -39,8 +39,8 @@ def test_distinct_l_diversity():
     feature_columns = ["col1", "col2", "col3"]
     sensitive_column = "col4"
 
-    m = mondrian.Mondrian(df, feature_columns)
-    partitions = m.partition([models.DistinctLDiversity(2, sensitive_column)])
+    m = mondrian.Mondrian([models.DistinctLDiversity(2, sensitive_column)], feature_columns)
+    partitions = m.partition(df)
 
     print(f"partitions: {partitions}")
 
@@ -54,35 +54,8 @@ def test_t_closeness():
     feature_columns = ["col1", "col2", "col3"]
     sensitive_column = "col4"
 
-    m = mondrian.Mondrian(df, feature_columns)
-    partitions = m.partition([models.tCloseness(0.2, df, sensitive_column, models.max_distance_metric)])
+    m = mondrian.Mondrian([models.tCloseness(0.2, df, sensitive_column, models.max_distance_metric)], feature_columns)
+    partitions = m.partition(df)
 
     print(f"partitions: {partitions}")
 
-
-def test_get_spans():
-    df = pd.DataFrame(data=data, columns=columns)
-
-    for name in categorical:
-        df[name] = df[name].astype("category")
-
-    feature_columns = ["col1", "col2", "col3"]
-
-    m = mondrian.Mondrian(df, feature_columns)
-    spans = m.get_spans(df.index)
-
-    assert {"col1": 6, "col2": 2, "col3": 3} == spans
-
-def test_get_spans_with_scale():
-    df = pd.DataFrame(data=data, columns=columns)
-    scale = {"col1": 6, "col2": 4, "col3": 5}
-
-    for name in categorical:
-        df[name] = df[name].astype("category")
-
-    feature_columns = ["col1", "col2", "col3"]
-
-    m = mondrian.Mondrian(df, feature_columns)
-    spans = m.get_spans(df.index, scale)
-
-    assert {"col1": 6/6, "col2": 2/4, "col3": 3/5} == spans

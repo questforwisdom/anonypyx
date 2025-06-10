@@ -15,10 +15,10 @@ def test_MDAVGeneric_continuous_data_already_normalized_for_debugging():
     columns = ["num1", "num2", "num3"]
     df = pd.DataFrame(data=data, columns=columns)
 
-    partitioner = MDAVGeneric(df, columns)
+    partitioner = MDAVGeneric(2, columns)
 
     expected = [list(df.index[i:i+2]) for i in range(0, 6, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -38,10 +38,10 @@ def test_MDAVGeneric_continuous_data():
     columns = ["num1", "num2", "num3"]
     df = pd.DataFrame(data=data, columns=columns)
 
-    partitioner = MDAVGeneric(df, columns)
+    partitioner = MDAVGeneric(2, columns)
 
     expected = [list(df.index[i:i+2]) for i in range(0, 8, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -65,10 +65,10 @@ def test_MDAVGeneric_categorical_data():
     for name in categorical:
         df[name] = df[name].astype("category")
 
-    partitioner = MDAVGeneric(df, columns)
+    partitioner = MDAVGeneric(2, columns)
 
     expected = [list(df.index[i:i+2]) for i in range(0, 6, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -93,10 +93,10 @@ def test_MDAVGeneric_mixed_data():
     for name in categorical:
         df[name] = df[name].astype("category")
 
-    partitioner = MDAVGeneric(df, columns)
+    partitioner = MDAVGeneric(2, columns)
 
     expected = [list(df.index[i:i+2]) for i in range(0, 8, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -114,10 +114,10 @@ def test_MDAVGeneric_excluding_columns_works():
     columns = ["num1", "num2", "num3"]
     df = pd.DataFrame(data=data, columns=columns)
 
-    partitioner = MDAVGeneric(df, ["num1", "num2"])
+    partitioner = MDAVGeneric(2, ["num1", "num2"])
 
     expected = [list(df.index[i:i+2]) for i in range(0, 6, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -137,8 +137,8 @@ def test_MDAVGeneric_does_not_alter_data():
 
     expected = df.copy()
 
-    partitioner = MDAVGeneric(df, ["num1", "num2"])
-    partitioner.partition(2)
+    partitioner = MDAVGeneric(2, ["num1", "num2"])
+    partitioner.partition(df)
 
     assert df.equals(expected)
 
@@ -157,10 +157,10 @@ def test_RandomcChoice_continuous_data():
     columns = ["num1", "num2", "num3"]
     df = pd.DataFrame(data=data, columns=columns)
 
-    partitioner = RandomChoiceAggregation(df, columns)
+    partitioner = RandomChoiceAggregation(2, columns)
 
     expected = [list(df.index[i:i+2]) for i in range(0, 8, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -179,10 +179,10 @@ def test_RandomChoice_excluding_columns_works():
     columns = ["num1", "num2", "num3"]
     df = pd.DataFrame(data=data, columns=columns)
 
-    partitioner = RandomChoiceAggregation(df, ["num1", "num2"])
+    partitioner = RandomChoiceAggregation(2, ["num1", "num2"])
 
     expected = [list(df.index[i:i+2]) for i in range(0, 6, 2)]
-    actual = partitioner.partition(2)
+    actual = partitioner.partition(df)
     # sort to make order deterministic
     sorted_actual = sorted([sorted(subset) for subset in actual])
 
@@ -202,7 +202,7 @@ def test_RandomChoice_does_not_alter_data():
 
     expected = df.copy()
 
-    partitioner = RandomChoiceAggregation(df, ["num1", "num2"])
-    partitioner.partition(2)
+    partitioner = RandomChoiceAggregation(2, ["num1", "num2"])
+    partitioner.partition(df)
 
     assert df.equals(expected)
