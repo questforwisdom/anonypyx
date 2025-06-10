@@ -1,6 +1,6 @@
 import anonypyx
 from anonypyx import models
-from anonypyx import mondrian
+from anonypyx.algorithms import mondrian
 import pandas as pd
 
 data = [

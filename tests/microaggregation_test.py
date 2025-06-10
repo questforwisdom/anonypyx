@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
-from anonypyx.microaggregation import MDAVGeneric, RandomChoiceAggregation
+from anonypyx.algorithms.microaggregation import MDAVGeneric, RandomChoiceAggregation
 
 def test_MDAVGeneric_continuous_data_already_normalized_for_debugging():
     data = [

@@ -1,4 +1,4 @@
-from anonypyx import generalisation, microaggregation, models, mondrian
+from anonypyx import generalisation, models, algorithms
 
 class Anonymiser:
     def __init__(self, df, **kwargs):
@@ -120,14 +120,14 @@ class Anonymiser:
                 privacy_models.append(models.tCloseness(t, df, sensitive_attribute, models.earth_movers_distance_categorical))
     
         if algorithm == "Mondrian":
-            self.algorithm = mondrian.Mondrian(privacy_models, quasi_identifiers)
+            self.algorithm = algorithms.Mondrian(privacy_models, quasi_identifiers)
         elif algorithm == "MDAV-generic":
             if l is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support l-diversity.")
             if t is not None:
                 raise ValueError("algorithm 'MDAV-generic' does not support t-closeness.")
     
-            self.algorithm = microaggregation.MDAVGeneric(k, quasi_identifiers)
+            self.algorithm = algorithms.MDAVGeneric(k, quasi_identifiers)
         self.df = df
         self.quasi_identifiers = quasi_identifiers
         self.sensitive_attribute = sensitive_attribute

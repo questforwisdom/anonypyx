@@ -36,4 +36,4 @@ dev = ["pytest"]
 Homepage = "https://github.com/questforwisdom/anonypyx"
 
 [tool.setuptools]
-packages = ["anonypyx", "anonypyx.generalisation", "anonypyx.attackers", "anonypyx.generalisation", "anonypyx.metrics", "anonypyx.dlx"]
+packages = ["anonypyx", "anonypyx.generalisation", "anonypyx.attackers", "anonypyx.generalisation", "anonypyx.metrics", "anonypyx.dlx", "anonypyx.algorithms"]
