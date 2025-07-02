@@ -1,3 +1,9 @@
+'''
+Implements the Mondrian [1] algorithm for multidimensional partitioning.
+
+[1]: LeFevre, K., DeWitt, D. J., & Ramakrishnan, R. (2006). Mondrian multidimensional K-anonymity. 22nd International Conference on Data Engineering (ICDE’06), 25–25. https://doi.org/10.1109/ICDE.2006.101
+'''
+
 class Mondrian:
     def __init__(self, privacy_models, feature_columns):
         self._privacy_models = privacy_models
